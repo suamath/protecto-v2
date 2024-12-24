@@ -101,24 +101,28 @@ class ScanPage:
 
     def _create_fields_table(self, fields_data: List[Dict]) -> Tuple[pd.DataFrame, st.delta_generator.DeltaGenerator]:
         df = pd.DataFrame(fields_data)
+        if 'is_selected' not in df.columns:
+            df['is_selected'] = False
+        
         column_config = {
             "is_selected": st.column_config.CheckboxColumn("Selected", width="medium"),
             "field": st.column_config.TextColumn("Field", width="large"),
             "type": st.column_config.TextColumn("Type", width="large")
         }
         
-        table = st.dataframe(
+        table = st.data_editor(
             df,
             column_config=column_config,
             use_container_width=True,
             hide_index=True,
-            on_select="rerun",
-            selection_mode="multi-row"
+            key="fields_table"
         )
         return df, table
 
     def _handle_save(self, selected_object: str, df: pd.DataFrame, event: st.delta_generator.DeltaGenerator) -> None:
-        selected_rows = event.selection.rows
+        # Get selected rows from the data_editor
+        selected_rows = [i for i, row in df.iterrows() if row.get('is_selected', False)]
+        
         if not selected_rows:
             st.warning("Please select fields to save")
             return
@@ -133,7 +137,9 @@ class ScanPage:
 
     def _handle_submit(self, df: pd.DataFrame, event: st.delta_generator.DeltaGenerator) -> None:
         try:
-            selected_rows = event.selection.rows
+            # Get selected rows from the data_editor
+            selected_rows = [i for i, row in df.iterrows() if row.get('is_selected', False)]
+            
             if not selected_rows:
                 st.warning("Please select fields to scan")
                 return
