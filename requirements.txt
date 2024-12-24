@@ -1,3 +1,2 @@
 streamlit==1.31.0
-Pillow==10.0.0  # for image processing
 numpy==1.24.0   # for numerical operations
