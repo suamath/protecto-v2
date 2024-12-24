@@ -118,12 +118,12 @@ class ProtectoApp:
             mask_active = "active" if st.session_state.page == "mask" else ""
             
             st.markdown(f'<div class="stButton {home_active}">', unsafe_allow_html=True)
-            if st.button("🏠 Home", use_container_width=True):
+            if st.button("Home", use_container_width=True):
                 self._navigate_to("home")
             st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown(f'<div class="stButton {scan_active}">', unsafe_allow_html=True)
-            if st.button("🔍 Scan", use_container_width=True):
+            if st.button("Scan", use_container_width=True):
                 st.session_state.show_scan_submenu = True
             st.markdown('</div>', unsafe_allow_html=True)
             
@@ -150,7 +150,7 @@ class ProtectoApp:
                     st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown(f'<div class="stButton {mask_active}">', unsafe_allow_html=True)
-            if st.button("🎭 Mask", use_container_width=True):
+            if st.button("Mask", use_container_width=True):
                 self._navigate_to("mask")
             st.markdown('</div>', unsafe_allow_html=True)
 
