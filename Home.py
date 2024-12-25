@@ -85,6 +85,13 @@ class ProtectoApp:
             ensuring accuracy in your LLMs/Gen AI apps.</p>""", 
             unsafe_allow_html=True
         )
+    def clear_session_state(self,current):
+        keys_to_clear = [
+            key for key in st.session_state.keys() 
+            if key not in ['']
+        ]
+        for key in keys_to_clear:
+            del st.session_state[key]    
 
     def render_page(self) -> None:
         try:
@@ -93,6 +100,10 @@ class ProtectoApp:
             elif st.session_state.page == "scan_edit":
                 ScanPage().show_start_scan()
             elif st.session_state.page == "scan_progress":
+                self.clear_session_state ("scan_progress")
+                st.session_state.page = "scan_progress"
+
+
                 ScanPage().show_scan_progress()
             elif st.session_state.page == "mask":
                 MaskPage().show()
