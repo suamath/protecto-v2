@@ -11,7 +11,7 @@ class ProtectoAPI:
 
     @staticmethod
     def get_list_of_fields_for_object(object_name):
-        result = [{"field": "Username", "is_selected": False}, {"field": "Email", "is_selected": True}]
+        result = [{"field": "Username", "is_selected": True}, {"field": "Email", "is_selected": True}]
         return result
 
     @staticmethod

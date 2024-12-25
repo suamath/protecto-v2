@@ -16,7 +16,16 @@ CSS = """
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     .stApp {background-color: white;}
-    .submenu {display: flex; gap: 10px; padding: 10px 0;}
+    section[data-testid="stSidebar"] {
+        background-color: #1e3d59 !important;
+        padding: 2rem 1rem;
+    }
+    section[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h1 {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #ffffff40;
+        margin-bottom: 1rem;
+        color: white;
+    }
 """
 
 class ProtectoApp:
@@ -46,25 +55,104 @@ class ProtectoApp:
 
     def show_sidebar(self) -> None:
         with st.sidebar:
-            st.title("Navigation")
+            st.title("Protecto")
             
-            if st.button("Home"):
+            st.markdown("""
+                <style>
+                /* Main buttons styling */
+                section[data-testid="stSidebar"] .stButton button {
+                    width: 100%;
+                    padding: 0.75rem 1rem;
+                    margin: 0.25rem 0;
+                    border: 1px solid #ffffff30;
+                    background-color: transparent;
+                    color: white;
+                    text-align: left !important;
+                    font-size: 1.1em;
+                    transition: all 0.2s;
+                }
+                section[data-testid="stSidebar"] .stButton button:hover {
+                    border-color: #ffffff80;
+                    background-color: #ffffff20;
+                }
+                section[data-testid="stSidebar"] .stButton.active button {
+                    background-color: #ffffff30;
+                    border-left: 4px solid #ff4b4b;
+                }
+                
+                /* Submenu container styling */
+                section[data-testid="stSidebar"] .submenu {
+                    margin: 0;
+                    padding: 0.1rem 0 0.1rem 1.5rem;
+                    border-left: 2px solid #ffffff30;
+                    margin-left: 1rem;
+                }
+                
+                /* Submenu buttons styling */
+                section[data-testid="stSidebar"] .submenu .stButton button {
+                    background-color: #ffffff10;
+                    font-size: 0.85em;
+                    padding: 0.35rem 0.75rem;
+                    margin: 0.1rem 0;
+                    min-height: 32px;
+                    border-radius: 4px;
+                    border: 1px solid #ffffff20;
+                }
+                
+                section[data-testid="stSidebar"] .submenu .stButton.active button {
+                    background-color: #ffffff25;
+                    border-left: 2px solid #ff4b4b;
+                    color: #ff4b4b;
+                }
+                
+                /* Column container for submenu */
+                section[data-testid="stSidebar"] .submenu [data-testid="column"] {
+                    padding: 0 0.2rem;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+            
+            # Main navigation buttons with active state
+            home_active = "active" if st.session_state.page == "home" else ""
+            scan_active = "active" if st.session_state.page in ["scan_edit", "scan_progress"] else ""
+            mask_active = "active" if st.session_state.page == "mask" else ""
+            
+            st.markdown(f'<div class="stButton {home_active}">', unsafe_allow_html=True)
+            if st.button("Home", use_container_width=True):
                 self._navigate_to("home")
+            st.markdown('</div>', unsafe_allow_html=True)
             
-            if st.button("Scan"):
+            st.markdown(f'<div class="stButton {scan_active}">', unsafe_allow_html=True)
+            if st.button("Scan", use_container_width=True):
                 st.session_state.show_scan_submenu = True
+            st.markdown('</div>', unsafe_allow_html=True)
             
+            # Scan submenu
             if st.session_state.show_scan_submenu:
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("Start Scan"):
-                        self._navigate_to("scan_edit", reset_submenu=False)
-                with col2:
-                    if st.button("Scan Progress"):
-                        self._navigate_to("scan_progress", reset_submenu=False)
-
-            if st.button("Mask"):
+                with st.container():
+                    st.markdown('<div class="submenu">', unsafe_allow_html=True)
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        start_scan_active = "active" if st.session_state.page == "scan_edit" else ""
+                        st.markdown(f'<div class="stButton {start_scan_active}">', unsafe_allow_html=True)
+                        if st.button("Start Scan", use_container_width=True):
+                            self._navigate_to("scan_edit", reset_submenu=False)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    with col2:
+                        scan_progress_active = "active" if st.session_state.page == "scan_progress" else ""
+                        st.markdown(f'<div class="stButton {scan_progress_active}">', unsafe_allow_html=True)
+                        if st.button("Scan Progress", use_container_width=True):
+                            self._navigate_to("scan_progress", reset_submenu=False)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
+            
+            st.markdown(f'<div class="stButton {mask_active}">', unsafe_allow_html=True)
+            if st.button("Mask", use_container_width=True):
                 self._navigate_to("mask")
+            st.markdown('</div>', unsafe_allow_html=True)
 
     def home(self) -> None:
         st.markdown("""<div style="margin-top: 20%;"></div>""", unsafe_allow_html=True)
