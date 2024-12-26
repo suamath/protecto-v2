@@ -11,7 +11,7 @@ class ScanProgressView:
         try:
             progress_data = self.protecto_api.get_scan_progress()
             df = pd.DataFrame(progress_data)
-            df['Progress'] = (df['scanned_count'] / df['total_count'] * 100).round(2)
+            #df['Progress'] = (df['scanned_count'] / df['total_count'] * 100).round(2)
             
             edited_df = self._create_progress_table(df)
             #self._handle_retries(edited_df)
@@ -27,7 +27,8 @@ class ScanProgressView:
             "scanned_count": st.column_config.NumberColumn("Scanned Records"),
             "status": st.column_config.TextColumn("Status"),
             "last_updated_time": st.column_config.TextColumn("Last Updated"),
-            "retry": "Retry"
+            "retry": "Retry",
+            "error": st.column_config.ButtonColumn("Error", help="Click to view error")
         }
         
         return st.data_editor(

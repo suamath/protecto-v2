@@ -4,9 +4,9 @@ from page.scan_page import ScanPage
 from page.scan_progress_view import ScanProgressView
 from page.Mask import MaskPage
 from protectoMethods import ProtectoAPI
+from page.masking_configuration_page import MaskConfigPage
 
-
-VALID_PAGES = {"home", "scan_edit", "scan_progress", "mask"}
+VALID_PAGES = {"home", "scan_edit", "scan_progress", "mask", "mask_config"}
 CSS = """
     .protecto-vault {
         text-align: center;
@@ -39,7 +39,6 @@ class ProtectoApp:
         self.scan_page = ScanPage()
         self.scan_progress = ScanProgressView(self.protecto_api)
 
-
     def _configure_page(self) -> None:
         st.set_page_config(page_title="Protecto Vault", layout="wide")
         st.markdown(f"<style>{CSS}</style>", unsafe_allow_html=True)
@@ -49,6 +48,8 @@ class ProtectoApp:
             st.session_state.page = "home"
         if 'show_scan_submenu' not in st.session_state:
             st.session_state.show_scan_submenu = False
+        if 'show_mask_submenu' not in st.session_state:
+            st.session_state.show_mask_submenu = False
 
     def _navigate_to(self, page: str, reset_submenu: bool = True) -> None:
         if page not in VALID_PAGES:
@@ -59,6 +60,7 @@ class ProtectoApp:
         st.session_state.current_page = page
         if reset_submenu:
             st.session_state.show_scan_submenu = False
+            st.session_state.show_mask_submenu = False
 
     def show_sidebar(self) -> None:
         with st.sidebar:
@@ -113,21 +115,29 @@ class ProtectoApp:
             
             home_active = "active" if st.session_state.page == "home" else ""
             scan_active = "active" if st.session_state.page in ["scan_edit", "scan_progress"] else ""
-            mask_active = "active" if st.session_state.page == "mask" else ""
+            mask_active = "active" if st.session_state.page in ["mask", "mask_config"] else ""
             
             self._render_nav_button("Home", home_active, "home")
-            self._render_nav_button("Scan", scan_active, None, True)
+            self._render_nav_button("Scan", scan_active, None, show_submenu=True, submenu_type="scan")
             
             if st.session_state.show_scan_submenu:
                 self._render_scan_submenu()
             
-            self._render_nav_button("Mask", mask_active, "mask")
+            self._render_nav_button("Mask", mask_active, None, show_submenu=True, submenu_type="mask")
+            
+            if st.session_state.show_mask_submenu:
+                self._render_mask_submenu()
 
-    def _render_nav_button(self, text: str, active_class: str, page: Optional[str], show_submenu: bool = False) -> None:
+    def _render_nav_button(self, text: str, active_class: str, page: Optional[str], show_submenu: bool = False, submenu_type: Optional[str] = None) -> None:
         st.markdown(f'<div class="stButton {active_class}">', unsafe_allow_html=True)
         if st.button(text, use_container_width=True):
             if show_submenu:
-                st.session_state.show_scan_submenu = True
+                if submenu_type == "scan":
+                    st.session_state.show_scan_submenu = True
+                    st.session_state.show_mask_submenu = False
+                elif submenu_type == "mask":
+                    st.session_state.show_mask_submenu = True
+                    st.session_state.show_scan_submenu = False
             elif page:
                 self._navigate_to(page)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -145,6 +155,13 @@ class ProtectoApp:
                 scan_progress_active = "active" if st.session_state.page == "scan_progress" else ""
                 self._render_nav_button("Scan Progress", scan_progress_active, "scan_progress", False)
             
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    def _render_mask_submenu(self) -> None:
+        with st.container():
+            st.markdown('<div class="submenu">', unsafe_allow_html=True)
+            mask_config_active = "active" if st.session_state.page == "mask_config" else ""
+            self._render_nav_button("Mask Configuration", mask_config_active, "mask_config", False)
             st.markdown('</div>', unsafe_allow_html=True)
 
     def home(self) -> None:
@@ -168,7 +185,7 @@ class ProtectoApp:
         )
 
     def clear_session_state(self, current: str) -> None:
-        keys_to_clear = [key for key in st.session_state.keys() if key not in ['page', 'show_scan_submenu']]
+        keys_to_clear = [key for key in st.session_state.keys() if key not in ['page', 'show_scan_submenu', 'show_mask_submenu']]
         for key in keys_to_clear:
             del st.session_state[key]
 
@@ -184,6 +201,10 @@ class ProtectoApp:
                 self.scan_progress.render()
             elif st.session_state.page == "mask":
                 MaskPage().show()
+            elif st.session_state.page == "mask_config":
+                MaskConfigPage().show()
+                st.title("Mask Configuration")
+                # Add your mask configuration page content here
         except Exception as e:
             st.error(f"Error rendering page: {str(e)}")
 
