@@ -252,7 +252,7 @@ class ProtectoApp:
                 MaskPage().show()
             elif st.session_state.page == "mask_config":
                 MaskConfigPage().show()
-                st.title("Mask Configuration")
+                # st.title("Mask Configuration")
                 # Add your mask configuration page content here
         except Exception as e:
             st.error(f"Error rendering page: {str(e)}")

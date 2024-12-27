@@ -13,12 +13,21 @@ class ScanProgressView:
         col1, col2 = st.columns([5, 1])
         with col2:
             if st.button("🔄 Refresh", key="refresh_button", use_container_width=True):
+                # Fetch fresh data
+                progress_data = self.protecto_api.get_scan_progress()
+                st.session_state['scan_data'] = progress_data
                 st.rerun()
         
         try:
-            progress_data = self.protecto_api.get_scan_progress()
-            df = pd.DataFrame(progress_data)
+            # Always fetch fresh data if not coming from retry
+            if 'is_retry' not in st.session_state or not st.session_state['is_retry']:
+                progress_data = self.protecto_api.get_scan_progress()
+                st.session_state['scan_data'] = progress_data
+            else:
+                # Reset retry flag
+                st.session_state['is_retry'] = False
             
+            df = pd.DataFrame(st.session_state['scan_data'])
             edited_df = self._create_progress_table(df)
 
         except Exception as e:
@@ -42,7 +51,10 @@ class ScanProgressView:
         
         # Get current page's data
         df_page = df.iloc[start_idx:end_idx].copy()
-
+        
+        # Add error message for failed status
+        df_page.loc[df_page['status'] == 'Failed', 'error'] = '❌ Timeout Error'
+        
         # Add styling for the retry button and table layout
         st.markdown("""
             <style>
@@ -63,38 +75,50 @@ class ScanProgressView:
                 color: #666;
                 font-size: 0.9em;
             }
-            .retry-button {
-                background-color: #ff4b4b;
-                color: white;
-                padding: 0.2rem 0.5rem;
-                border-radius: 4px;
-                font-size: 0.8em;
-                cursor: pointer;
-                border: none;
-                transition: background-color 0.2s;
+            .retry-section {
+                margin: 1rem 0;
+                padding: 0.5rem;
+                border-top: 1px solid #f0f2f6;
             }
-            .retry-button:hover {
-                background-color: #ff3333;
-            }
-            /* New styles for refresh button alignment */
-            .button-container {
+            .retry-row {
                 display: flex;
-                justify-content: flex-end;
-                padding: 0.5rem 0;
-                margin-bottom: 1rem;
+                align-items: center;
+                margin: 0.5rem 0;
+                padding: 0.5rem;
+                background: #f8f9fa;
+                border-radius: 4px;
             }
-            .stButton button {
-                width: 150px;
+            .retry-button {
+                min-width: 120px;
+            }
+            .retry-info {
+                margin-left: 1rem;
+                color: #666;
+                font-size: 0.9em;
+            }
+            /* Status column styling */
+            [data-testid="stDataFrameCell"] div:contains("Success") {
+                color: #28a745;
+                font-weight: 500;
+            }
+            [data-testid="stDataFrameCell"] div:contains("Failed") {
+                color: #dc3545;
+                font-weight: 500;
+            }
+            [data-testid="stDataFrameCell"] div:contains("Retrying") {
+                color: #ffc107;
+                font-weight: 500;
+            }
+            /* Error column styling */
+            [data-testid="stDataFrameCell"] div:contains("❌") {
+                color: #dc3545;
+                font-weight: 500;
             }
             </style>
         """, unsafe_allow_html=True)
 
         # Configure table columns
         column_config = {
-            "request_id": st.column_config.TextColumn(
-                "Request ID",
-                width="large"
-            ),
             "object_name": st.column_config.TextColumn(
                 "Object",
                 width="medium"
@@ -114,6 +138,11 @@ class ScanProgressView:
             "last_updated_time": st.column_config.TextColumn(
                 "Last Updated",
                 width="large"
+            ),
+            "error": st.column_config.TextColumn(
+                "Error",
+                width="large",
+                help="Error details if scan failed"
             )
         }
         
@@ -121,13 +150,13 @@ class ScanProgressView:
         editor = st.data_editor(
             df_page,
             column_config=column_config,
-            disabled=["request_id", "object_name", "total_count", "scanned_count", 
-                     "Progress", "status", "last_updated_time"],
+            disabled=["object_name", "total_count", "scanned_count", 
+                     "status", "last_updated_time", "error"],
             hide_index=True,
             use_container_width=True,
             height=400,
-            column_order=["request_id", "object_name", "total_count", "scanned_count", 
-                         "status", "last_updated_time"]
+            column_order=["object_name", "total_count", "scanned_count", 
+                         "status", "last_updated_time", "error"]
         )
 
         # Update the main dataframe
@@ -139,28 +168,26 @@ class ScanProgressView:
         # Show retry buttons for failed status rows
         failed_rows = df_page[df_page['status'] == 'Failed']
         if not failed_rows.empty:
-            st.markdown("""
-                <style>
-                .retry-container {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    margin-bottom: 8px;
-                }
-                .request-id {
-                    color: #666;
-                    font-size: 0.9em;
-                }
-                </style>
-            """, unsafe_allow_html=True)
+            st.markdown("<div class='retry-section'>", unsafe_allow_html=True)
+            st.markdown("<h4>Failed Scans</h4>", unsafe_allow_html=True)
             
             for _, row in failed_rows.iterrows():
-                cols = st.columns([4, 1, 1])
-                with cols[1]:
-                    if st.button("⟳ Retry", key=f"retry_{row['request_id']}", use_container_width=True):
+                cols = st.columns([2, 4, 4])
+                with cols[0]:
+                    if st.button("Retry Scan", 
+                               key=f"retry_{row['request_id']}", 
+                               type="primary",
+                               use_container_width=True):
                         self._handle_retry(row['request_id'])
-                with cols[2]:
-                    st.markdown(f"<div class='request-id'>ID: {row['request_id']}</div>", unsafe_allow_html=True)
+                with cols[1]:
+                    st.markdown(f"""
+                        <div class='retry-info'>
+                            <strong>Request ID:</strong> {row['request_id']}<br>
+                            <strong>Object:</strong> {row['object_name']}
+                        </div>
+                    """, unsafe_allow_html=True)
+            
+            st.markdown("</div>", unsafe_allow_html=True)
         
         # Add space between retry buttons and pagination
         st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
@@ -209,9 +236,42 @@ class ScanProgressView:
     def _handle_retry(self, request_id: str):
         """Handle retry action for failed scans"""
         try:
-            # Add your retry logic here
-            st.success(f"Retrying scan for request ID: {request_id}")
-            # You might want to call an API method here
-            # self.protecto_api.retry_scan(request_id)
+            # Show success toast immediately
+            st.toast("Retry request is submitted", icon="✅")
+            
+            # Get current data
+            current_data = st.session_state.get('scan_data', [])
+            
+            # Find the record to retry
+            retry_record = next((record for record in current_data if record['request_id'] == request_id), None)
+            
+            if retry_record:
+                # Prepare data for retry
+                selected_object = retry_record['object_name']
+                
+                # Call API to retry the scan
+                save_result = self.protecto_api.insert_or_update_scan_metadata(selected_object, [])
+                
+                if save_result.get('is_scan_submitted'):
+                    st.success("Fields saved successfully!", icon="✅")
+                    
+                    scan_result = self.protecto_api.submit_to_scan([])
+                    if scan_result.get('is_scan_submitted'):
+                        st.success("Scan initiated successfully!", icon="✅")
+                        
+                        # Update the status in the current data
+                        retry_record['status'] = 'Retrying'
+                        retry_record['error'] = ''  # Clear error message
+                        
+                        # Get updated data from API
+                        updated_data = self.protecto_api.retry_failed_object(request_id)
+                        
+                        # Update session state
+                        st.session_state['scan_data'] = updated_data
+                        st.session_state['is_retry'] = True
+                        
+                        # Force refresh the page
+                        st.rerun()
+
         except Exception as e:
             st.error(f"Error retrying scan: {str(e)}")

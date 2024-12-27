@@ -65,6 +65,16 @@ class ProtectoAPI:
             "last_updated_time": "22-04-2024T01:12:00.0000",
             "error": '',
             "retry": True
+        },
+        {
+            "request_id": "12wer345kw3",
+            "object_name": "Case",
+            "total_count": 20003440,
+            "scanned_count": 700,
+            "status": "Retrying",
+            "last_updated_time": "22-04-2024T01:12:00.0000",
+            "error": '',
+            "retry": True
         }]
         return result
 
@@ -87,8 +97,18 @@ class ProtectoAPI:
             "status": "Retrying",
             "last_updated_time": "22-04-2024T01:12:00.0000",
             "error": '',
-            "retry": False
-        }]
+            "retry": True
+        },{
+            "request_id": "12wer345kw3",
+            "object_name": "Case",
+            "total_count": 20003440,
+            "scanned_count": 700,
+            "status": "Retrying",
+            "last_updated_time": "22-04-2024T01:12:00.0000",
+            "error": '',
+            "retry": True
+        }
+        ]
         return result
 
     @staticmethod
