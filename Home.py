@@ -68,59 +68,85 @@ class ProtectoApp:
             
             st.markdown("""
                 <style>
-                section[data-testid="stSidebar"] .stButton button {
+                /* Main navigation buttons */
+                div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[kind="secondary"] {
                     width: 100%;
                     padding: 0.75rem 1rem;
-                    margin: 0.25rem 0;
+                    margin: 0.1rem 0;
                     border: 1px solid #ffffff30;
                     background-color: transparent;
                     color: white;
                     text-align: left !important;
-                    font-size: 1.1em;
+                    font-size: 1.0em;
+                    font-weight: 500;
                     transition: all 0.2s;
                 }
-                section[data-testid="stSidebar"] .stButton button:hover {
+
+                div[data-testid="stSidebar"] div[data-testid="stVerticalBlock"] button[kind="secondary"]:hover {
                     border-color: #ffffff80;
                     background-color: #ffffff20;
                 }
-                section[data-testid="stSidebar"] .stButton.active button {
-                    background-color: #ffffff30;
-                    border-left: 4px solid #ff4b4b;
+
+                /* Submenu container */
+                div[data-testid="stSidebar"] .submenu {
+                    margin: -0.1rem 0 0.2rem 1.5rem !important;
+                    padding: 0.05rem;
+                    background: transparent;
+                    border-left: 2px solid #ffffff30;
                 }
-                section[data-testid="stSidebar"] .submenu {
-                    margin: 0.5rem 0;
-                    padding: 0.5rem;
-                    background: #2a4d6d;
-                    border-radius: 8px;
-                    border-left: 3px solid #4CAF50;
+
+                /* Submenu buttons general style */
+                div[data-testid="stSidebar"] .submenu button[kind="secondary"] {
+                    background-color: transparent !important;
+                    font-size: 0.85rem !important;
+                    padding: 0.3rem 0.75rem !important;
+                    margin: 0.05rem 0 !important;
+                    border: none !important;
+                    color: #ffffffcc !important;
+                    font-weight: 400 !important;
+                    min-height: 20px !important;
                 }
-                section[data-testid="stSidebar"] .submenu .stButton button {
-                    background-color: #ffffff15;
-                    font-size: 0.85em;
-                    padding: 0.4rem 0.75rem;
-                    margin: 0.2rem 0;
-                    border-radius: 6px;
-                    border: 1px solid #ffffff25;
-                    color: #98FB98;
-                    font-weight: 500;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+                /* Start Scan button specific */
+                div[data-testid="stSidebar"] .submenu .start-scan button {
+                    color: #4a90e2 !important;
                 }
-                
-                section[data-testid="stSidebar"] .submenu .stButton button:hover {
-                    background-color: #4CAF50;
-                    color: white;
-                    border-color: #4CAF50;
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+
+                div[data-testid="stSidebar"] .submenu .start-scan button:hover {
+                    color: white !important;
+                    background-color: #4a90e280 !important;
                 }
-                section[data-testid="stSidebar"] .submenu .stButton.active button {
-                    background-color: #4CAF50;
-                    color: white;
-                    border-color: #4CAF50;
-                    border-left: 2px solid #ffffff;
+
+                /* Scan Progress button specific */
+                div[data-testid="stSidebar"] .submenu .scan-progress button {
+                    color: #f0a500 !important;
                 }
-                section[data-testid="stSidebar"] .submenu [data-testid="column"] {
-                    padding: 0 0.2rem;
+
+                div[data-testid="stSidebar"] .submenu .scan-progress button:hover {
+                    color: white !important;
+                    background-color: #f0a50080 !important;
+                }
+
+                /* Active states */
+                div[data-testid="stSidebar"] .stButton.active > button {
+                    border-left: 4px solid #ff4b4b !important;
+                    background-color: #ffffff20 !important;
+                    font-weight: 600 !important;
+                }
+
+                div[data-testid="stSidebar"] .submenu .start-scan.active button {
+                    color: white !important;
+                    background-color: #4a90e280 !important;
+                }
+
+                div[data-testid="stSidebar"] .submenu .scan-progress.active button {
+                    color: white !important;
+                    background-color: #f0a50080 !important;
+                }
+
+                /* Column spacing */
+                div[data-testid="stSidebar"] .submenu [data-testid="column"] {
+                    padding: 0 0.05rem !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
@@ -157,15 +183,26 @@ class ProtectoApp:
     def _render_scan_submenu(self) -> None:
         with st.container():
             st.markdown('<div class="submenu">', unsafe_allow_html=True)
+            st.markdown(
+            """<p style='text-align: center; color: white; font-size: 1.0em; margin-bottom: 65px;'>
+            Select the options</p>""", 
+            unsafe_allow_html=True
+            )
             col1, col2 = st.columns(2)
             
             with col1:
                 start_scan_active = "active" if st.session_state.page == "scan_edit" else ""
-                self._render_nav_button("Start Scan", start_scan_active, "scan_edit", False)
+                st.markdown(f'<div class="stButton start-scan {start_scan_active}">', unsafe_allow_html=True)
+                if st.button("Start Scan", use_container_width=True):
+                    self._navigate_to("scan_edit", reset_submenu=False)
+                st.markdown('</div>', unsafe_allow_html=True)
             
             with col2:
                 scan_progress_active = "active" if st.session_state.page == "scan_progress" else ""
-                self._render_nav_button("Scan Progress", scan_progress_active, "scan_progress", False)
+                st.markdown(f'<div class="stButton scan-progress {scan_progress_active}">', unsafe_allow_html=True)
+                if st.button("Scan Progress", use_container_width=True):
+                    self._navigate_to("scan_progress", reset_submenu=False)
+                st.markdown('</div>', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
 
