@@ -82,27 +82,39 @@ class ProtectoApp:
                 
                 /* Submenu container styling */
                 section[data-testid="stSidebar"] .submenu {
-                    margin: 0;
-                    padding: 0.1rem 0 0.1rem 1.5rem;
-                    border-left: 2px solid #ffffff30;
-                    margin-left: 1rem;
+                    margin: 0.5rem 0;
+                    padding: 0.5rem;
+                    background: #2a4d6d;
+                    border-radius: 8px;
+                    border-left: 3px solid #4CAF50;
                 }
                 
                 /* Submenu buttons styling */
                 section[data-testid="stSidebar"] .submenu .stButton button {
-                    background-color: #ffffff10;
+                    background-color: #ffffff15;
                     font-size: 0.85em;
-                    padding: 0.35rem 0.75rem;
-                    margin: 0.1rem 0;
-                    min-height: 32px;
-                    border-radius: 4px;
-                    border: 1px solid #ffffff20;
+                    padding: 0.4rem 0.75rem;
+                    margin: 0.2rem 0;
+                    border-radius: 6px;
+                    border: 1px solid #ffffff25;
+                    color: #98FB98;
+                    font-weight: 500;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                }
+                
+                section[data-testid="stSidebar"] .submenu .stButton button:hover {
+                    background-color: #4CAF50;
+                    color: white;
+                    border-color: #4CAF50;
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
                 }
                 
                 section[data-testid="stSidebar"] .submenu .stButton.active button {
-                    background-color: #ffffff25;
-                    border-left: 2px solid #ff4b4b;
-                    color: #ff4b4b;
+                    background-color: #4CAF50;
+                    color: white;
+                    border-color: #4CAF50;
+                    border-left: 2px solid #ffffff;
                 }
                 
                 /* Column container for submenu */
