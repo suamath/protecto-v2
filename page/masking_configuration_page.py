@@ -70,7 +70,7 @@ class MaskConfigPage:
                 st.subheader("Configure Fields")
                 edited_fields = self._create_fields_table(st.session_state.field_metadata)
                 
-                # Update Configuration button
+                # Update Configuration button 
                 if st.button("Update Mask Configuration", type="primary", use_container_width=True):
                     try:
                         # Update mask metadata
