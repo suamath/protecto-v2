@@ -51,46 +51,46 @@ class MaskConfigPage:
             )
             
             # Query button
-            if st.button("Query", type="primary", use_container_width=True):
-                if not query:
-                    st.error("Please enter a query before proceeding.")
-                    return
+            # if st.button("Query", type="primary", use_container_width=True):
+            #     if not query:
+            #         st.error("Please enter a query before proceeding.")
+            #         return
                 
-                try:
-                    # Get and display field metadata
-                    metadata = self.protecto_api.get_metadata_for_mask(selected_object)
-                    st.session_state.field_metadata = metadata.get('field_metadata', [])
-                    st.session_state.show_table = True
-                except Exception as e:
-                    st.error(f"An error occurred while fetching metadata: {str(e)}")
-                    return
+            try:
+                # Get and display field metadata
+                metadata = self.protecto_api.get_metadata_for_mask(st.session_state.selected_object)
+                st.session_state.field_metadata = metadata.get('field_metadata', [])
+                st.session_state.show_table = True
+            except Exception as e:
+                st.error(f"An error occurred while fetching metadata: {str(e)}")
+                return
             
             # Show table only if Query button has been clicked
-            if st.session_state.get('show_table', False):
-                st.subheader("Configure Fields")
-                edited_fields = self._create_fields_table(st.session_state.field_metadata)
-                
-                # Update Configuration button
-                if st.button("Update Mask Configuration", type="primary", use_container_width=True):
-                    try:
-                        # Update mask metadata
-                        result = self.protecto_api.update_mask_metadata(
-                            selected_object,
-                            query,
-                            edited_fields.to_dict('records')
-                        )
+            #if st.session_state.get('show_table', False):
+            st.subheader("Configure Fields")
+            edited_fields = self._create_fields_table(st.session_state.field_metadata)
+            
+            # Update Configuration button
+            if st.button("Update Mask Configuration", type="primary", use_container_width=True):
+                try:
+                    # Update mask metadata
+                    result = self.protecto_api.get_metadata_for_mask(
+                        selected_object,
+                        query,
+                        edited_fields.to_dict('records')
+                    )
+                    
+                    if result.get('is_rows_selected_for_masking'):
+                        st.success(result.get('message', 'Mask configuration updated successfully!'))
+                        # Clear the session state to refresh the data
+                        st.session_state.show_table = False
+                        if 'field_metadata' in st.session_state:
+                            del st.session_state.field_metadata
+                    else:
+                        st.error("Failed to update mask configuration. Please try again.")
                         
-                        if result.get('is_rows_selected_for_masking'):
-                            st.success(result.get('message', 'Mask configuration updated successfully!'))
-                            # Clear the session state to refresh the data
-                            st.session_state.show_table = False
-                            if 'field_metadata' in st.session_state:
-                                del st.session_state.field_metadata
-                        else:
-                            st.error("Failed to update mask configuration. Please try again.")
-                            
-                    except Exception as e:
-                        st.error(f"An error occurred: {str(e)}")
+                except Exception as e:
+                    st.error(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
     mask_config_page = MaskConfigPage()

@@ -143,6 +143,10 @@ class ScanProgressView:
                 "Error",
                 width="large",
                 help="Error details if scan failed"
+            ),
+            "retry": st.column_config.CheckboxColumn(    # st.column_config.CheckboxColumn("Selected", width="medium")
+                "Retry",
+                width="medium"
             )
         }
         
@@ -156,7 +160,7 @@ class ScanProgressView:
             use_container_width=True,
             height=400,
             column_order=["object_name", "total_count", "scanned_count", 
-                         "status", "last_updated_time", "error"]
+                         "status", "last_updated_time", "error", "retry"]
         )
 
         # Update the main dataframe
@@ -170,22 +174,26 @@ class ScanProgressView:
         if not failed_rows.empty:
             st.markdown("<div class='retry-section'>", unsafe_allow_html=True)
             st.markdown("<h4>Failed Scans</h4>", unsafe_allow_html=True)
+            retry_request=[]
             
             for _, row in failed_rows.iterrows():
-                cols = st.columns([2, 4, 4])
-                with cols[0]:
-                    if st.button("Retry Scan", 
-                               key=f"retry_{row['request_id']}", 
-                               type="primary",
-                               use_container_width=True):
-                        self._handle_retry(row['request_id'])
-                with cols[1]:
-                    st.markdown(f"""
-                        <div class='retry-info'>
-                            <strong>Request ID:</strong> {row['request_id']}<br>
-                            <strong>Object:</strong> {row['object_name']}
-                        </div>
-                    """, unsafe_allow_html=True)
+               retry_request.append(row['request_id'])
+
+            cols = st.columns([2, 4, 4])
+
+            with cols[0]:
+                if st.button("Retry Scan", 
+                           key=f"retry_{row['request_id']}", 
+                           type="primary",
+                           use_container_width=True):
+                    self._handle_retry(retry_request)
+            # with cols[1]:
+            #     st.markdown(f"""
+            #         <div class='retry-info'>
+            #             <strong>Request ID:</strong> {row['request_id']}<br>
+            #             <strong>Object:</strong> {row['object_name']}
+            #         </div>
+            #     """, unsafe_allow_html=True)
             
             st.markdown("</div>", unsafe_allow_html=True)
         

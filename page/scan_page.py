@@ -9,38 +9,64 @@ class ScanPage:
         self.objects = self.protecto_api.get_list_of_objects()
 
     def show_start_scan(self):
-        # Create title and refresh button in the same row
-        col1, col2 = st.columns([5, 1])
-        with col1:
-            st.title("Start scan")
-        with col2:
-            if st.button("🔄 Refresh", key="refresh_button", use_container_width=True):
-                st.rerun()
-        
-        st.subheader("Select Object")
-        
-        selected_object = st.selectbox(
-            "", 
-            ["Select the Object Name"] + self.objects, 
-            key="object_select"
-        )
-        
-        if selected_object == "Select the Object Name":
-            return
-        
-        try:
-            fields = self.protecto_api.get_list_of_fields_for_object(selected_object)
-            df, table = self._create_fields_table(fields)
-            
-            # Add some vertical space before the button
-            st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
-            
-            # Submit button with full width
-            if st.button("Submit to scan", use_container_width=True, type="primary", key="submit_btn"):
-                self._handle_submit(selected_object, df, table)
+       # Initialize session states if not exists
+       if 'submit_clicked' not in st.session_state:
+           st.session_state.submit_clicked = False
+       if 'submit_handled' not in st.session_state:
+           st.session_state.submit_handled = False
 
-        except Exception as e:
-            st.error(f"Error loading fields: {str(e)}")
+       # Create title and refresh button in the same row
+       col1, col2 = st.columns([5, 1])
+       with col1:
+           st.title("Start scan")
+       with col2:
+           if st.button("🔄 Refresh", key="refresh_button", use_container_width=True):
+               # Reset both states on refresh
+               st.session_state.submit_clicked = False
+               st.session_state.submit_handled = False
+               st.rerun()
+       
+       st.subheader("Select Object")
+       
+       selected_object = st.selectbox(
+           "", 
+           self.objects, 
+           key="object_select",
+           index=self.objects.index("User") if "User" in self.objects else 0
+       )
+       st.session_state.selected_object = selected_object
+       
+       if selected_object == "Select the Object Name":
+           return
+       
+       try:
+           fields = self.protecto_api.get_list_of_fields_for_object(selected_object)
+           df, table = self._create_fields_table(fields)
+           
+           # Add some vertical space before the button
+           st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
+           
+           # Submit button with full width
+           submit_button = st.button(
+               "Submit to scan",
+               use_container_width=True,
+               type="primary",
+               key="submit_btn",
+               disabled=st.session_state.submit_clicked
+           )
+           
+           if submit_button:
+               # First click
+               st.session_state.submit_clicked = True
+               st.rerun()
+           
+           # Handle submit after rerun, but only once
+           if st.session_state.submit_clicked and not st.session_state.submit_handled:
+               st.session_state.submit_handled = True
+               self._handle_submit(selected_object, df, table)
+
+       except Exception as e:
+           st.error(f"Error loading fields: {str(e)}")
 
     def _create_fields_table(self, fields_data: List[Dict]) -> Tuple[pd.DataFrame, st.delta_generator.DeltaGenerator]:
         df = pd.DataFrame(fields_data)

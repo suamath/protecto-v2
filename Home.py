@@ -183,11 +183,11 @@ class ProtectoApp:
     def _render_scan_submenu(self) -> None:
         with st.container():
             st.markdown('<div class="submenu">', unsafe_allow_html=True)
-            st.markdown(
-            """<p style='text-align: center; color: white; font-size: 1.0em; margin-bottom: 65px;'>
-            Select the options</p>""", 
-            unsafe_allow_html=True
-            )
+            # st.markdown(
+            # """<p style='text-align: center; color: white; font-size: 1.0em; margin-bottom: 65px;'>
+            # Select the options</p>""", 
+            # unsafe_allow_html=True
+            # )
             col1, col2 = st.columns(2)
             
             with col1:
