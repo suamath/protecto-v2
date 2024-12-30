@@ -11,28 +11,45 @@ class ProtectoAPI:
 
     @staticmethod
     def get_list_of_fields_for_object(object_name):
-        result =   result=result = [
-   {"field": "Username", "is_selected": True},
-   {"field": "Email", "is_selected": True},
-   {"field": "Phone Number", "is_selected": True},
-   {"field": "Address", "is_selected": True}, 
-   {"field": "Date of Birth", "is_selected": True},
-   {"field": "Company Name", "is_selected": True},
-   {"field": "Job Title", "is_selected": True},
-   {"field": "Department", "is_selected": True},
-   {"field": "Employee ID", "is_selected": True}, 
-   {"field": "Start Date", "is_selected": True},
-   {"field": "Manager", "is_selected": True},
-   {"field": "Location", "is_selected": True},
-   {"field": "Skills", "is_selected": True},
-   {"field": "Education", "is_selected": True},
-   {"field": "Languages", "is_selected": True},
-   {"field": "Projects", "is_selected": True},
-   {"field": "Certifications", "is_selected": True},
-   {"field": "Social Media", "is_selected": True},
-   {"field": "Emergency Contact", "is_selected": False},
-   {"field": "Notes", "is_selected": True}
-]
+        if object_name == "User":
+            result = [
+                {"field": "Username", "is_selected": True},
+                {"field": "Email", "is_selected": True},
+                {"field": "Phone Number", "is_selected": True},
+                {"field": "Address", "is_selected": True}, 
+                {"field": "Date of Birth", "is_selected": True},
+                {"field": "Company Name", "is_selected": True},
+                {"field": "Job Title", "is_selected": True},
+                {"field": "Department", "is_selected": True},
+                {"field": "Employee ID", "is_selected": True}, 
+                {"field": "Start Date", "is_selected": True},
+                {"field": "Manager", "is_selected": True},
+                {"field": "Location", "is_selected": True},
+                {"field": "Skills", "is_selected": True},
+                {"field": "Education", "is_selected": True},
+                {"field": "Languages", "is_selected": True},
+                {"field": "Projects", "is_selected": True},
+                {"field": "Certifications", "is_selected": True},
+                {"field": "Social Media", "is_selected": True},
+                {"field": "Emergency Contact", "is_selected": False},
+                {"field": "Notes", "is_selected": True}
+            ]
+        else:
+            result = [
+                {"field": "Account Name", "is_selected": True},
+                {"field": "Account Type", "is_selected": True},
+                {"field": "Account Owner", "is_selected": True},
+                {"field": "Account Website", "is_selected": True}, 
+                {"field": "Account Industry", "is_selected": True},
+                {"field": "Account Description", "is_selected": True},
+                {"field": "Account Phone", "is_selected": True},
+                {"field": "Account Email", "is_selected": True},
+                {"field": "Account Address", "is_selected": True}, 
+                {"field": "Account Region", "is_selected": True},
+                {"field": "Account Country", "is_selected": True},
+                {"field": "Account City", "is_selected": True},
+                {"field": "Account Zip", "is_selected": True}
+            ]
         return result
 
     @staticmethod
@@ -119,7 +136,7 @@ class ProtectoAPI:
     @staticmethod
     def get_metadata_for_mask(object_name):
         result = {
-            "query": "case_date< 8/3/2015 AND geo='EU'",
+            "query": "case_date< 8/3/2015 AND geo='EU'", 
             "field_metadata": [{
                 "field": "Username",
                 "pii_identified": ["PERSON", "ORG"],
