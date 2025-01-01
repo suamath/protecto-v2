@@ -5,6 +5,7 @@ from page.scan_progress_view import ScanProgressView
 from page.Mask import MaskPage
 from protectoMethods import ProtectoAPI
 from page.masking_configuration_page import MaskConfigPage
+from page.login_page import LoginPage
 
 VALID_PAGES = {"home", "scan_edit", "scan_progress", "mask", "mask_config"}
 CSS = """
@@ -240,26 +241,61 @@ class ProtectoApp:
 
     def render_page(self) -> None:
         try:
-            if st.session_state.page == "home":
-                self.home()
-            elif st.session_state.page == "scan_edit":
-                self.scan_page.show_start_scan()
-            elif st.session_state.page == "scan_progress":
-                self.clear_session_state("scan_progress")
-                st.session_state.page = "scan_progress"
-                self.scan_progress.render()
-            elif st.session_state.page == "mask":
-                MaskPage().show()
-            elif st.session_state.page == "mask_config":
-                MaskConfigPage().show()
-                # st.title("Mask Configuration")
-                # Add your mask configuration page content here
+           
+    
+            # Only show other pages if authenticated
+            if st.session_state.authenticated:
+                if st.session_state.page == "home":
+                    self.home()
+                elif st.session_state.page == "scan_edit":
+                    self.scan_page.show_start_scan()
+                elif st.session_state.page == "scan_progress":
+                    self.clear_session_state("scan_progress")
+                    st.session_state.page = "scan_progress"
+                    self.scan_progress.render()
+                elif st.session_state.page == "mask":
+                    MaskPage().show()
+                elif st.session_state.page == "mask_config":
+                    MaskConfigPage().show()
+                    
         except Exception as e:
-            st.error(f"Error rendering page: {str(e)}")
+             st.error(f"Error rendering page: {str(e)}")
 
     def run(self) -> None:
-        self.show_sidebar()
-        self.render_page()
+        try:
+            # Initialize authentication state if not present
+            if 'authenticated' not in st.session_state:
+                st.session_state.authenticated = False
+                st.session_state.page = 'login'
+    
+            # Show login page if not authenticated
+            if not st.session_state.authenticated:
+                login_page = LoginPage()
+                login_page.display()
+                return
+    
+            # Add environment change button in sidebar for authenticated users
+            if st.sidebar.button("Change Environment"):
+                # Store the current environment before clearing
+                current_env = st.session_state.environment_name if 'environment_name' in st.session_state else None
+                
+                # Clear session state
+                for key in list(st.session_state.keys()):
+                    del st.session_state[key]
+                
+                # Reset authentication and page state
+                st.session_state.authenticated = False
+                st.session_state.page = 'login'
+                
+                st.rerun()
+                return
+    
+            # Only show sidebar and render page if authenticated
+            self.show_sidebar()
+            self.render_page()
+            
+        except Exception as e:
+            st.error(f"Error in application: {str(e)}")
 
 if __name__ == "__main__":
     app = ProtectoApp()
