@@ -203,7 +203,7 @@ class LoginPage:
                         options=environment_names,
                         key="environment_radio"
                     )
-                    submit_button = st.form_submit_button("Login")
+                    submit_button = st.form_submit_button("Select")
                     if submit_button and environment_name:
                         if self.user_manager.authenticate_user(environment_name):
                             st.session_state.authenticated = True
