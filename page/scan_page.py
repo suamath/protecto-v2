@@ -27,13 +27,15 @@ class ScanPage:
                st.rerun()
        
        st.subheader("Select Object")
+       if "selected_object" not in st.session_state:
+           st.session_state.selected_object = "User"  
        
        selected_object = st.selectbox(
-           "", 
-           self.objects, 
-           key="object_select",
-           index=self.objects.index("User") if "User" in self.objects else 0
-       )
+             "", 
+             self.objects, 
+             key="object_select",
+             index=self.objects.index(st.session_state.selected_object)
+         )
        st.session_state.selected_object = selected_object
        
        if selected_object == "Select the Object Name":

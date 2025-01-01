@@ -189,7 +189,7 @@ class LoginPage:
         if 'page' not in st.session_state:
             st.session_state.page = 'login'
 
-        st.title("Protecto Login")
+        st.title("Select Environment")
         
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:

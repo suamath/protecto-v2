@@ -35,11 +35,15 @@ class MaskConfigPage:
         
         # Object Selection
         st.subheader("Select Object")
+        print("Select Object",self.objects)
+        print("Select Object",st.session_state.selected_object)
         selected_object = st.selectbox(
-            "Choose an object to configure masking",
-            [""] + self.objects,
-            key="mask_config_object"
-        )
+             "Choose an object to configure masking",
+             [""] + self.objects,
+             key="mask_config_object",
+             index=1 + self.objects.index(st.session_state.selected_object) 
+         )
+        
         
         if selected_object and selected_object != "":
             # Query Input
