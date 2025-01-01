@@ -119,7 +119,7 @@ class ProtectoAPI:
     @staticmethod
     def get_metadata_for_mask(object_name):
         result = {
-            "query": "case_date< 8/3/2015 AND geo='EU'",
+            "query": "case_date< 8/3/2015 AND geo='EU'", ## int - ""
             "field_metadata": [{
                 "field": "Username",
                 "pii_identified": ["PERSON", "ORG"],
