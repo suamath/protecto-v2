@@ -4,6 +4,6 @@ streamlit
 pandas
 pymysql
 SQLAlchemy
-mysqlclient
+#mysqlclient
 mysql-connector-python
 # Add any other dependencies your project needs
