@@ -6,8 +6,10 @@ from page.Mask import MaskPage
 from protectoMethods import ProtectoAPI
 from page.masking_configuration_page import MaskConfigPage
 from page.login_page import LoginPage
+from page.masking_approval_page import MaskingApprovalPage 
+from page.mask_progress import MaskProgressPage
 
-VALID_PAGES = {"home", "scan_edit", "scan_progress", "mask", "mask_config"}
+VALID_PAGES = {"home", "scan_edit", "scan_progress", "mask", "mask_config", "mask_approval", "mask_progress"}
 CSS = """
     .protecto-vault {
         text-align: center;
@@ -154,7 +156,8 @@ class ProtectoApp:
             
             home_active = "active" if st.session_state.page == "home" else ""
             scan_active = "active" if st.session_state.page in ["scan_edit", "scan_progress"] else ""
-            mask_active = "active" if st.session_state.page in ["mask", "mask_config"] else ""
+            mask_active = "active" if st.session_state.page in ["mask", "mask_config", "mask_approval", "mask_progress"] else ""
+            
             
             self._render_nav_button("Home", home_active, "home")
             self._render_nav_button("Scan", scan_active, None, show_submenu=True, submenu_type="scan")
@@ -184,11 +187,6 @@ class ProtectoApp:
     def _render_scan_submenu(self) -> None:
         with st.container():
             st.markdown('<div class="submenu">', unsafe_allow_html=True)
-            # st.markdown(
-            # """<p style='text-align: center; color: white; font-size: 1.0em; margin-bottom: 65px;'>
-            # Select the options</p>""", 
-            # unsafe_allow_html=True
-            # )
             col1, col2 = st.columns(2)
             
             with col1:
@@ -210,9 +208,32 @@ class ProtectoApp:
     def _render_mask_submenu(self) -> None:
         with st.container():
             st.markdown('<div class="submenu">', unsafe_allow_html=True)
-            mask_config_active = "active" if st.session_state.page == "mask_config" else ""
-            self._render_nav_button("Mask Configuration", mask_config_active, "mask_config", False)
+            
+            # First row with two columns
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                mask_config_active = "active" if st.session_state.page == "mask_config" else ""
+                st.markdown(f'<div class="stButton start-scan {mask_config_active}">', unsafe_allow_html=True)
+                if st.button("Mask Configuration", use_container_width=True):
+                    self._navigate_to("mask_config", reset_submenu=False)
+                st.markdown('</div>', unsafe_allow_html=True)
+            
+            with col2:
+                mask_approval_active = "active" if st.session_state.page == "mask_approval" else ""
+                st.markdown(f'<div class="stButton scan-progress {mask_approval_active}">', unsafe_allow_html=True)
+                if st.button("Mask Approval", use_container_width=True):
+                    self._navigate_to("mask_approval", reset_submenu=False)
+                st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Second row with Mask Progress button
+            st.markdown('<div style="margin-top: 10px;">', unsafe_allow_html=True)  # Add some spacing
+            mask_progress_active = "active" if st.session_state.page == "mask_progress" else ""
+            st.markdown(f'<div class="stButton mask-progress {mask_progress_active}">', unsafe_allow_html=True)
+            if st.button("Mask Progress", use_container_width=True):
+                self._navigate_to("mask_progress", reset_submenu=False)
             st.markdown('</div>', unsafe_allow_html=True)
+           
 
     def home(self) -> None:
         st.markdown("""<div style="margin-top: 20%;"></div>""", unsafe_allow_html=True)
@@ -241,8 +262,6 @@ class ProtectoApp:
 
     def render_page(self) -> None:
         try:
-           
-    
             # Only show other pages if authenticated
             if st.session_state.authenticated:
                 if st.session_state.page == "home":
@@ -250,13 +269,18 @@ class ProtectoApp:
                 elif st.session_state.page == "scan_edit":
                     self.scan_page.show_start_scan()
                 elif st.session_state.page == "scan_progress":
-                    #self.clear_session_state("scan_progress")
                     st.session_state.page = "scan_progress"
                     self.scan_progress.render()
                 elif st.session_state.page == "mask":
                     MaskPage().show()
                 elif st.session_state.page == "mask_config":
                     MaskConfigPage().show()
+                elif st.session_state.page == "mask_approval":
+                    MaskingApprovalPage().show()   
+                elif st.session_state.page == "mask_progress":
+                    MaskProgressPage().show()     
+
+
                     
         except Exception as e:
              st.error(f"Error rendering page: {str(e)}")
