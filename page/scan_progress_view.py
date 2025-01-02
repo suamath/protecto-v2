@@ -175,7 +175,6 @@ class ScanProgressView:
         failed_rows = df_page[df_page['status'] == 'Failed']
         if not failed_rows.empty:
             st.markdown("<div class='retry-section'>", unsafe_allow_html=True)
-            st.markdown("<h4>Failed Scans</h4>", unsafe_allow_html=True)
             retry_request=[]
             
             for _, row in failed_rows.iterrows():

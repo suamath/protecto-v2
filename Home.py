@@ -235,7 +235,7 @@ class ProtectoApp:
         )
 
     def clear_session_state(self, current: str) -> None:
-        keys_to_clear = [key for key in st.session_state.keys() if key not in ['page', 'show_scan_submenu', 'show_mask_submenu','selected_object']]
+        keys_to_clear = [key for key in st.session_state.keys() if key not in ['page', 'show_scan_submenu', 'show_mask_submenu','selected_object','authenticated']]
         for key in keys_to_clear:
             del st.session_state[key]
 
@@ -250,7 +250,7 @@ class ProtectoApp:
                 elif st.session_state.page == "scan_edit":
                     self.scan_page.show_start_scan()
                 elif st.session_state.page == "scan_progress":
-                    self.clear_session_state("scan_progress")
+                    #self.clear_session_state("scan_progress")
                     st.session_state.page = "scan_progress"
                     self.scan_progress.render()
                 elif st.session_state.page == "mask":
@@ -281,7 +281,8 @@ class ProtectoApp:
                 
                 # Clear session state
                 for key in list(st.session_state.keys()):
-                    del st.session_state[key]
+                    if key not in ['selected_object']:
+                        del st.session_state[key]
                 
                 # Reset authentication and page state
                 st.session_state.authenticated = False

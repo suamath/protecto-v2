@@ -189,7 +189,7 @@ class LoginPage:
         if 'page' not in st.session_state:
             st.session_state.page = 'login'
 
-        st.title("Protecto Login")
+        st.title("Select Environment")
         
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
@@ -203,7 +203,7 @@ class LoginPage:
                         options=environment_names,
                         key="environment_radio"
                     )
-                    submit_button = st.form_submit_button("Login")
+                    submit_button = st.form_submit_button("Select")
                     if submit_button and environment_name:
                         if self.user_manager.authenticate_user(environment_name):
                             st.session_state.authenticated = True
