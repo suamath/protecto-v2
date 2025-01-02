@@ -23,7 +23,7 @@ class TiDBConnection:
         print(f"User: {self.user}")
         print(f"Password: {'*' * len(self.password)}")
         
-        connection_url = f"mysql+mysqldb://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+        connection_url = f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
         
         ssl_args = {
             "ssl": {
