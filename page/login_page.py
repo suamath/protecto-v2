@@ -23,17 +23,13 @@ class TiDBConnection:
         print(f"User: {self.user}")
         print(f"Password: {'*' * len(self.password)}")
         
-        connection_url = f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
-        
-        ssl_args = {
-            "ssl": {
-                "ca": self.ca_path,
-                "ssl_mode": "VERIFY_IDENTITY"
-            }
-        }
+        connection_url = (
+            f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+            f"?ssl_ca={self.ca_path}&ssl_verify_cert=true"
+        )
         
         try:
-            engine = create_engine(connection_url, connect_args=ssl_args)
+            engine = create_engine(connection_url)
             with engine.connect() as connection:
                 print("✓ Successfully connected!")
                 result = connection.execute(text("show databases;"))
