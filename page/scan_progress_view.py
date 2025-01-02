@@ -149,6 +149,8 @@ class ScanProgressView:
                 width="medium"
             )
         }
+        #if 'retry'  in df.columns:
+        
         
         # Create the data editor
         editor = st.data_editor(
@@ -159,8 +161,8 @@ class ScanProgressView:
             hide_index=True,
             use_container_width=True,
             height=400,
-            column_order=["object_name", "total_count", "scanned_count", 
-                         "status", "last_updated_time", "error", "retry"]
+            column_order=["retry","object_name", "total_count", "scanned_count", 
+                         "status", "last_updated_time", "error"]
         )
 
         # Update the main dataframe
@@ -178,15 +180,17 @@ class ScanProgressView:
             
             for _, row in failed_rows.iterrows():
                retry_request.append(row['request_id'])
+            st.session_state['retry'] = retry_request   
 
             cols = st.columns([2, 4, 4])
 
             with cols[0]:
-                if st.button("Retry Scan", 
-                           key=f"retry_{row['request_id']}", 
-                           type="primary",
-                           use_container_width=True):
-                    self._handle_retry(retry_request)
+                    if st.button("Retry Scan", 
+                               type="primary",
+                               use_container_width=True):
+                        self._handle_retry(st.session_state['retry'])
+
+           
             # with cols[1]:
             #     st.markdown(f"""
             #         <div class='retry-info'>

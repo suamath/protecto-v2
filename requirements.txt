@@ -2,4 +2,6 @@ setuptools
 wheel
 streamlit
 pandas
+mysqlclient
+SQLAlchemy
 # Add any other dependencies your project needs

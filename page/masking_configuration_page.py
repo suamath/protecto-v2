@@ -10,6 +10,7 @@ class MaskConfigPage:
     def _create_fields_table(self, fields_data):
         df = pd.DataFrame(fields_data)
         column_config = {
+            "to_be_masked": st.column_config.CheckboxColumn("To be masked?", width="small"),
             "field": st.column_config.TextColumn("Field", width="medium"),
             "pii_identified": st.column_config.ListColumn("PII Identified", width="medium"),
             "override_pii": st.column_config.SelectboxColumn(
@@ -17,7 +18,6 @@ class MaskConfigPage:
                 width="medium",
                 options=["PERSON", "EMAIL", "NO PII", "URL", "ADDRESS", "PHONE"]
             ),
-            "to_be_masked": st.column_config.CheckboxColumn("To be masked?", width="small"),
             "samples": st.column_config.ListColumn("Samples", width="large")
         }
         
@@ -26,7 +26,8 @@ class MaskConfigPage:
             column_config=column_config,
             use_container_width=True,
             hide_index=True,
-            num_rows="fixed"
+            num_rows="fixed",
+             column_order=["to_be_masked", "field", "pii_identified", "override_pii", "samples"]    
         )
 
     def show(self):
@@ -44,7 +45,7 @@ class MaskConfigPage:
             # Query Input
             st.subheader("Enter Query")
             query = st.text_area(
-                "Enter WHERE clause for data selection",
+                "Enter WHERE clause",
                 placeholder="e.g., case_date < '8/3/2015' AND geo='EU'",
                 help="Enter the conditions to select records for masking",
                 key="query_input"
@@ -71,7 +72,7 @@ class MaskConfigPage:
                 edited_fields = self._create_fields_table(st.session_state.field_metadata)
                 
                 # Update Configuration button
-                if st.button("Update Mask Configuration", type="primary", use_container_width=True):
+                if st.button("Schedule for masking", type="primary", use_container_width=True):
                     try:
                         # Update mask metadata
                         result = self.protecto_api.update_mask_metadata(
@@ -81,7 +82,7 @@ class MaskConfigPage:
                         )
                         
                         if result.get('is_rows_selected_for_masking'):
-                            st.success(result.get('message', 'Mask configuration updated successfully!'))
+                            st.success(result.get('message'))
                             # Clear the session state to refresh the data
                             st.session_state.show_table = False
                             if 'field_metadata' in st.session_state:
