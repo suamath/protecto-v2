@@ -11,7 +11,7 @@ class TiDBConnection:
         self.user = '216JHCeM1VMy5o7.root'
         self.password = 'GfKyfKqB76MTL2EC'
         self.database = 'test'
-        self.ca_path = "C:/Users/sumat/Downloads/isrgrootx1.pem"
+        self.ca_path = "cert/isrgrootx1.pem"
         
     def connect(self):
         """Establishes connection to TiDB database."""
