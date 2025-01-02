@@ -54,12 +54,7 @@ class MaskConfigPage:
                 help="Enter the conditions to select records for masking",
                 key="query_input"
             )
-            
-            # Query button
-            # if st.button("Query", type="primary", use_container_width=True):
-            #     if not query:
-            #         st.error("Please enter a query before proceeding.")
-            #         return
+        
                 
             try:
                 # Get and display field metadata
@@ -71,12 +66,20 @@ class MaskConfigPage:
                 return
             
             # Show table only if Query button has been clicked
-            if st.session_state.get('show_table', False):
-                st.subheader("Configure Fields")
+            # Create container for button at the top
+            with st.container():
+                schedule_button = st.button("Schedule for masking", type="primary", use_container_width=True)
+            
+            # Add spacing between button and table
+            st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+            
+            # Create container for table and its logic
+            with st.container():
+                # Create the table
                 edited_fields = self._create_fields_table(st.session_state.field_metadata)
                 
-                # Update Configuration button
-                if st.button("Schedule for masking", type="primary", use_container_width=True):
+                # Handle button click after table is created
+                if schedule_button:
                     try:
                         # Update mask metadata
                         result = self.protecto_api.update_mask_metadata(
@@ -93,10 +96,10 @@ class MaskConfigPage:
                                 del st.session_state.field_metadata
                         else:
                             st.error("Failed to update mask configuration. Please try again.")
-                            
                     except Exception as e:
                         st.error(f"An error occurred: {str(e)}")
-
+                            
+                    
 if __name__ == "__main__":
     mask_config_page = MaskConfigPage()
     mask_config_page.show()

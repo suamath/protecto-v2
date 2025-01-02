@@ -152,7 +152,24 @@ class ScanProgressView:
         #if 'retry'  in df.columns:
         
         
-        # Create the data editor
+       
+      # First check for failed rows
+        failed_rows = df_page[df_page['status'] == 'Failed']
+        
+        if not failed_rows.empty:
+            st.markdown("<div class='retry-section'>", unsafe_allow_html=True)
+            
+            # Show retry button
+            cols = st.columns([2, 4, 4])
+            with cols[0]:
+                retry_button = st.button("Retry Scan", 
+                                       type="primary",
+                                       use_container_width=True)
+        
+        # Add space between button and table
+        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
+        
+        # Show the table with checkboxes
         editor = st.data_editor(
             df_page,
             column_config=column_config,
@@ -161,45 +178,27 @@ class ScanProgressView:
             hide_index=True,
             use_container_width=True,
             height=400,
-            column_order=["retry","object_name", "total_count", "scanned_count", 
+            column_order=["retry", "object_name", "total_count", "scanned_count", 
                          "status", "last_updated_time", "error"]
         )
-
+        
         # Update the main dataframe
         df.iloc[start_idx:end_idx] = editor
         
-        # Add space between table and buttons
-        st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
-        
-        # Show retry buttons for failed status rows
-        failed_rows = df_page[df_page['status'] == 'Failed']
-        if not failed_rows.empty:
-            st.markdown("<div class='retry-section'>", unsafe_allow_html=True)
-            retry_request=[]
-            
-            for _, row in failed_rows.iterrows():
-               retry_request.append(row['request_id'])
-            st.session_state['retry'] = retry_request   
-
-            cols = st.columns([2, 4, 4])
-
-            with cols[0]:
-                    if st.button("Retry Scan", 
-                               type="primary",
-                               use_container_width=True):
-                        self._handle_retry(st.session_state['retry'])
+        # Handle retry based on checkbox selection
+        if 'retry_button' in locals() and retry_button:
+            # Get rows where retry is checked
+            selected_rows = editor[editor['retry'] == True]
+            if not selected_rows.empty:
+                retry_request = selected_rows['request_id'].tolist()
+                self._handle_retry(retry_request)
+            else:
+                st.warning("Please select at least one failed scan to retry")
 
            
-            # with cols[1]:
-            #     st.markdown(f"""
-            #         <div class='retry-info'>
-            #             <strong>Request ID:</strong> {row['request_id']}<br>
-            #             <strong>Object:</strong> {row['object_name']}
-            #         </div>
-            #     """, unsafe_allow_html=True)
+           
             
-            st.markdown("</div>", unsafe_allow_html=True)
-        
+           
         # Add space between retry buttons and pagination
         st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
         
