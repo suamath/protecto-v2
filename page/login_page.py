@@ -26,7 +26,7 @@ class TiDBConnection:
         connection_url = (
             f"mysql+mysqlconnector://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
             f"?ssl_ca={self.ca_path}&ssl_verify_cert=true"
-        )
+        )#
         
         try:
             engine = create_engine(connection_url)
