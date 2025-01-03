@@ -34,7 +34,8 @@ class ScanPage:
              "", 
              self.objects, 
              key="object_select",
-             index=self.objects.index(st.session_state.selected_object)
+             index=self.objects.index(st.session_state.selected_object),
+             on_change=lambda: st.session_state.update({"submit_clicked": False, "submit_handled": False})
          )
        st.session_state.selected_object = selected_object
        
@@ -43,12 +44,11 @@ class ScanPage:
        
        try:
            fields = self.protecto_api.get_list_of_fields_for_object(selected_object)
-           df, table = self._create_fields_table(fields)
            
-           # Add some vertical space before the button
+           # Add vertical space before the button
            st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
            
-           # Submit button with full width
+           # Submit button with full width (moved above table creation)
            submit_button = st.button(
                "Submit to scan",
                use_container_width=True,
@@ -56,6 +56,9 @@ class ScanPage:
                key="submit_btn",
                disabled=st.session_state.submit_clicked
            )
+           
+           # Create table after button
+           df, table = self._create_fields_table(fields)
            
            if submit_button:
                # First click
@@ -66,7 +69,7 @@ class ScanPage:
            if st.session_state.submit_clicked and not st.session_state.submit_handled:
                st.session_state.submit_handled = True
                self._handle_submit(selected_object, df, table)
-
+       
        except Exception as e:
            st.error(f"Error loading fields: {str(e)}")
 
@@ -74,7 +77,7 @@ class ScanPage:
         df = pd.DataFrame(fields_data)
         if 'is_selected' not in df.columns:
             df['is_selected'] = False
-        df = df[['is_selected', 'field']]    
+        df = df[['is_selected', 'field', 'type']]    
 
         # Initialize table page in session state if not exists
         if 'table_page' not in st.session_state:
@@ -120,6 +123,7 @@ class ScanPage:
         column_config = {
             "is_selected": st.column_config.CheckboxColumn("Selected", width="medium"),
             "field": st.column_config.TextColumn("Field", width="large"),
+            "type": st.column_config.TextColumn("Type", width="medium"),
         }
         
         # Create the data editor
