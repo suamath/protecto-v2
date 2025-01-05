@@ -73,14 +73,14 @@ class MaskingApprovalPage:
             df['retry'] = False
             
         # Reorder columns to ensure specific columns come first
-        first_columns = ['retry', 'Id', 'is_masked', 'error']
+        first_columns = ['retry','Id','Username','is_masked',  'error']
         other_columns = [col for col in df.columns if col not in first_columns]
         df = df[first_columns + other_columns]
 
         # Create dynamic column configuration
         column_config = {
             'retry': st.column_config.CheckboxColumn(
-                'retry',
+                'Select',
                 width='small',
                 default=False,
                 help="Select to retry this record"
@@ -104,7 +104,7 @@ class MaskingApprovalPage:
         
         # Add other columns dynamically
         for col in df.columns:
-            if col not in ['retry', 'Id', 'is_masked', 'error']:
+            if col not in ['retry', 'Username','Id', 'is_masked', 'error']:
                 column_config[col] = st.column_config.TextColumn(
                     col,
                     width='medium',
@@ -140,13 +140,8 @@ class MaskingApprovalPage:
                 options=object_names,
                 key="object_selectbox"
             )
-            
-            # Update session state when selection changes
-            # if selected_object != st.session_state.selected_object:
-            #     st.session_state.selected_object = selected_object
         
         with col2:
-            # Find and display the corresponding query
             if selected_object:
                 selected_query = next(
                     (obj["query"] for obj in scheduled_objects 
@@ -170,39 +165,37 @@ class MaskingApprovalPage:
             
             # Only show buttons if we have data
             if edited_df is not None:
-                with col1:
-                    if st.button("Save", type="secondary", use_container_width=True):
-                        self.handle_save(selected_object, edited_df)
-                
-                with col2:
-                    retry_button = st.button(
-                        "Retry",
-                        type="secondary",
-                        use_container_width=True,
-                        disabled=not is_approve_retry['is_retry_enabled']
-                    )
-                    if retry_button:
-                        self.handle_retry(selected_object, edited_df)
-
                 with col3:
-                    retry_all_button = st.button(
-                        "Retry all",
-                        type="secondary",
-                        use_container_width=True,
-                        disabled=not is_approve_retry['is_retry_enabled']
-                    )
-                    if retry_all_button:
-                        self.handle_retry_all(selected_object, edited_df)
-                
-                with col4:
                     approve_button = st.button(
                         "Approve",
                         type="primary",
                         use_container_width=True,
                         disabled=not is_approve_retry['is_approve_enabled']
                     )
-                    if approve_button:
-                        self.handle_approve(selected_object)
+                with col4:
+                    retry_button = st.button(
+                        "Retry",
+                        type="secondary",
+                        use_container_width=True,
+                        disabled=not is_approve_retry['is_retry_enabled']
+                    )
+                
+                if approve_button:
+                    self.handle_save(selected_object, edited_df)
+                    self.handle_approve(selected_object)
+                    
+                if retry_button:
+                    self.handle_retry(selected_object, edited_df)
+
+                # with col3:
+                #     retry_all_button = st.button(
+                #         "Retry all",
+                #         type="secondary",
+                #         use_container_width=True,
+                #         disabled=not is_approve_retry['is_retry_enabled']
+                #     )
+                #     if retry_all_button:
+                #         self.handle_retry_all(selected_object, edited_df)
 
 if __name__ == "__main__":
     masking_page = MaskingApprovalPage()

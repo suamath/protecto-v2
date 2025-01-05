@@ -9,69 +9,98 @@ class ScanPage:
         self.objects = self.protecto_api.get_list_of_objects()
 
     def show_start_scan(self):
-       # Initialize session states if not exists
-       if 'submit_clicked' not in st.session_state:
-           st.session_state.submit_clicked = False
-       if 'submit_handled' not in st.session_state:
-           st.session_state.submit_handled = False
-
-       # Create title and refresh button in the same row
-       col1, col2 = st.columns([5, 1])
-       with col1:
-           st.title("Start scan")
-       with col2:
-           if st.button("🔄 Refresh", key="refresh_button", use_container_width=True):
-               # Reset both states on refresh
-               st.session_state.submit_clicked = False
-               st.session_state.submit_handled = False
-               st.rerun()
-       
-       st.subheader("Select Object")
-       if "selected_object" not in st.session_state:
-           st.session_state.selected_object = "User"  
-       
-       selected_object = st.selectbox(
-             "", 
-             self.objects, 
-             key="object_select",
-             index=self.objects.index(st.session_state.selected_object),
-             on_change=lambda: st.session_state.update({"submit_clicked": False, "submit_handled": False})
-         )
-       st.session_state.selected_object = selected_object
-       
-       if selected_object == "Select the Object Name":
-           return
-       
-       try:
-           fields = self.protecto_api.get_list_of_fields_for_object(selected_object)
-           
-           # Add vertical space before the button
-           st.markdown("<div style='height: 1.5rem;'></div>", unsafe_allow_html=True)
-           
-           # Submit button with full width (moved above table creation)
-           submit_button = st.button(
-               "Submit to scan",
-               use_container_width=True,
-               type="primary",
-               key="submit_btn",
-               disabled=st.session_state.submit_clicked
-           )
-           
-           # Create table after button
-           df, table = self._create_fields_table(fields)
-           
-           if submit_button:
-               # First click
-               st.session_state.submit_clicked = True
-               st.rerun()
-           
-           # Handle submit after rerun, but only once
-           if st.session_state.submit_clicked and not st.session_state.submit_handled:
-               st.session_state.submit_handled = True
-               self._handle_submit(selected_object, df, table)
-       
-       except Exception as e:
-           st.error(f"Error loading fields: {str(e)}")
+    # Initialize session states if not exists
+        if 'submit_clicked' not in st.session_state:
+            st.session_state.submit_clicked = False
+        if 'submit_handled' not in st.session_state:
+            st.session_state.submit_handled = False
+    
+        # Add custom CSS to reduce the top margin and spacing
+        st.markdown("""
+            <style>
+            [data-testid="stAppViewContainer"] {
+                padding-top: 0;
+            }
+            .block-container {
+                padding-top: 0;
+                max-width: 100%;
+            }
+            .main-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: -3rem;  /* Negative margin to reduce top space */
+                padding: 0;
+            }
+            .main-title {
+                margin: 0;
+                padding: 0;
+                font-size: 2rem;
+                font-weight: bold;
+            }
+            .stSelectbox {
+                margin-top: -1rem;  /* Reduce space before selectbox */
+            }
+            </style>
+        """, unsafe_allow_html=True)
+    
+        # Header section with minimal spacing
+        col1, col2 = st.columns([5, 1])
+        with col1:
+            st.markdown('<h1 class="main-title">Start scan</h1>', unsafe_allow_html=True)
+        with col2:
+            if st.button("🔄 Refresh", key="refresh_button"):
+                st.session_state.submit_clicked = False
+                st.session_state.submit_handled = False
+                st.rerun()
+    
+        # Minimal spacing before Select Object
+        st.markdown('<h3 style="margin-top: 0.5rem; margin-bottom: 0.5rem;">Select Object</h3>', unsafe_allow_html=True)
+        
+        if "selected_object" not in st.session_state:
+            st.session_state.selected_object = "User"  
+        
+        # Selectbox with reduced spacing
+        selected_object = st.selectbox(
+            "", 
+            self.objects, 
+            key="object_select",
+            index=self.objects.index(st.session_state.selected_object),
+            on_change=lambda: st.session_state.update({"submit_clicked": False, "submit_handled": False}),
+            label_visibility="collapsed"  # Hide label to reduce space
+        )
+        st.session_state.selected_object = selected_object
+        
+        if selected_object == "Select the Object Name":
+            return
+        
+        try:
+            fields = self.protecto_api.get_list_of_fields_for_object(selected_object)
+            
+            # Submit button
+            submit_col1, submit_col2 = st.columns([4, 1])
+            with submit_col2:
+                submit_button = st.button(
+                    "Submit to scan",
+                    use_container_width=True,
+                    type="primary",
+                    key="submit_btn",
+                    disabled=st.session_state.submit_clicked
+                )
+            
+            # Table
+            df, table = self._create_fields_table(fields)
+            
+            if submit_button:
+                st.session_state.submit_clicked = True
+                st.rerun()
+            
+            if st.session_state.submit_clicked and not st.session_state.submit_handled:
+                st.session_state.submit_handled = True
+                self._handle_submit(selected_object, df, table)
+        
+        except Exception as e:
+            st.error(f"Error loading fields: {str(e)}")
 
     def _create_fields_table(self, fields_data: List[Dict]) -> Tuple[pd.DataFrame, st.delta_generator.DeltaGenerator]:
         df = pd.DataFrame(fields_data)
@@ -102,15 +131,16 @@ class ScanPage:
             <style>
             .stDataFrame {
                 border: 1px solid #f0f2f6;
-                border-radius: 4px;
-                padding: 1rem 0;
+                border-radius: 0px;
+                padding: -5 0;
+                text-align: left !important;
             }
             .pagination-container {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 padding: 0.5rem;
-                margin-top: 0.5rem;
+                margin-top: 0.0rem;
                 border-top: 1px solid #f0f2f6;
             }
             .page-info {
@@ -121,7 +151,7 @@ class ScanPage:
         """, unsafe_allow_html=True)
         
         column_config = {
-            "is_selected": st.column_config.CheckboxColumn("Selected", width="medium"),
+            "is_selected": st.column_config.CheckboxColumn("Select", width="medium"),
             "field": st.column_config.TextColumn("Field", width="large"),
             "type": st.column_config.TextColumn("Type", width="medium"),
         }

@@ -8,27 +8,45 @@ class MaskConfigPage:
         self.objects = self.protecto_api.get_list_of_objects()
         
     def _create_fields_table(self, fields_data):
-        df = pd.DataFrame(fields_data)
-        column_config = {
-            "to_be_masked": st.column_config.CheckboxColumn("To be masked?", width="small"),
-            "field": st.column_config.TextColumn("Field", width="medium"),
-            "pii_identified": st.column_config.ListColumn("PII Identified", width="medium"),
-            "override_pii": st.column_config.SelectboxColumn(
-                "Override PII",
-                width="medium",
-                options=["PERSON", "EMAIL", "NO PII", "URL", "ADDRESS", "PHONE"]
-            ),
-            "samples": st.column_config.ListColumn("Samples", width="large")
-        }
+         # Convert boolean to Yes/No in the DataFrame
+         df = pd.DataFrame(fields_data)
+         df['to_be_masked'] = df['to_be_masked'].map({True: 'Yes', False: 'No'})
+         
+         column_config = {
+             "to_be_masked": st.column_config.SelectboxColumn(
+                 "To be masked?",
+                 width="small",
+                 options=["Yes", "No"],
+                 help="Select Yes to mask this field, No to keep it as is",
+                 required=True
+             ),
+             "field": st.column_config.TextColumn("Field", width="medium"),
+             "pii_identified": st.column_config.ListColumn("PII Identified", width="medium"),
+             "override_pii": st.column_config.SelectboxColumn(
+                 "Override PII",
+                 width="medium",
+                 options=["PERSON", "EMAIL", "NO PII", "URL", "ADDRESS", "PHONE"]
+             ),
+             "samples": st.column_config.ListColumn("Samples", width="large")
+         }
+         
         
-        return st.data_editor(
-            df,
-            column_config=column_config,
-            use_container_width=True,
-            hide_index=True,
-            num_rows="fixed",
-             column_order=["to_be_masked", "field", "pii_identified", "override_pii", "samples"]    
-        )
+        
+         
+         edited_df = st.data_editor(
+             df,
+             column_config=column_config,
+             use_container_width=True,
+             hide_index=True,
+             num_rows="fixed",
+             column_order=["to_be_masked", "field", "pii_identified", "override_pii", "samples"]
+         )
+         
+         # Convert Yes/No back to boolean before returning
+         if edited_df is not None:
+             edited_df['to_be_masked'] = edited_df['to_be_masked'].map({'Yes': True, 'No': False})
+         
+         return edited_df
 
     def show(self):
         st.title("Mask Configuration")
@@ -65,27 +83,26 @@ class MaskConfigPage:
                 st.error(f"An error occurred while fetching metadata: {str(e)}")
                 return
             
-            # Show table only if Query button has been clicked
-            # Create container for button at the top
-            with st.container():
-                schedule_button = st.button("Schedule for masking", type="primary", use_container_width=True)
-            
-            # Add spacing between button and table
-            st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
-            
-            # Create container for table and its logic
             with st.container():
                 # Create the table
                 edited_fields = self._create_fields_table(st.session_state.field_metadata)
                 
+                with st.container():
+                    col1, col2 = st.columns([3, 1])
+                    with col2:
+                        schedule_button = st.button("Schedule for masking", type="primary")
+                
                 # Handle button click after table is created
-                if schedule_button:
+                if schedule_button and edited_fields is not None:
                     try:
+                        # Convert to records while ensuring boolean values
+                        fields_records = edited_fields.to_dict('records')
+                        
                         # Update mask metadata
                         result = self.protecto_api.update_mask_metadata(
                             selected_object,
                             query,
-                            edited_fields.to_dict('records')
+                            fields_records
                         )
                         
                         if result.get('is_rows_selected_for_masking'):
