@@ -22,7 +22,7 @@ class ScanPage:
                 padding-top: 0;
             }
             .block-container {
-                padding-top: 0;
+                padding-top: 1.8rem;
                 max-width: 100%;
             }
             .main-header {
@@ -152,7 +152,7 @@ class ScanPage:
         
         column_config = {
             "is_selected": st.column_config.CheckboxColumn("Select", width="medium"),
-            "field": st.column_config.TextColumn("Field", width="large"),
+            "field": st.column_config.TextColumn("Field", width="medium"),
             "type": st.column_config.TextColumn("Type", width="medium"),
         }
         
