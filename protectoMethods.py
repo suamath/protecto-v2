@@ -8,6 +8,7 @@ class ProtectoAPI:
     def get_list_of_objects():
         result = ["User", "Case"]
         return result
+    
 
     @staticmethod
     def get_list_of_fields_for_object(object_name):
