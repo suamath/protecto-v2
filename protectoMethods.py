@@ -19,6 +19,7 @@ class ProtectoAPI:
          """
          result=[{"field":"Username","type":"Text","is_selected":False},{"field":"Email","type":"email","is_selected":True}]
          return result
+    
 
     @staticmethod
     def is_scan_submitted(object_name):
