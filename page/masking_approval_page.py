@@ -117,8 +117,9 @@ class MaskingApprovalPage:
             column_config=column_config,
             use_container_width=True,
             hide_index=True,
-            num_rows="dynamic",
-            key="data_editor"
+            num_rows="fixed",
+           
+           
         )
         
         return edited_df

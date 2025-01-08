@@ -118,7 +118,7 @@ class ImprovedSidebar:
         st.markdown(self.css, unsafe_allow_html=True)
         
         with st.sidebar:
-            st.markdown("""<h1>Protecto</h1>""", unsafe_allow_html=True)
+            st.markdown("""<h1 style="color: white; font-weight: bold;">Protecto</h1>""", unsafe_allow_html=True)
             
             if st.button("Change Environment", use_container_width=True):
                 for key in list(st.session_state.keys()):
