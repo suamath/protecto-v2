@@ -31,35 +31,23 @@ class ProtectoAPI:
 
     @staticmethod
     def get_scan_progress():
-        result = [{
-            "request_id": "12wer34kwq",
-            "object_name": "User",
-            "total_count": 200000,
-            "scanned_count": 20,
-            "status": "Success",
-            "last_updated_time": "22-04-2024T01:12:00.0000",
-            "error": '',
-            "retry": False
-        }, {
-            "request_id": "12wer345kwq",
-            "object_name": "Case",
-            "total_count": 200000,
-            "scanned_count": 20,
-            "status": "Failed",
-            "last_updated_time": "22-04-2024T01:12:00.0000",
-            "error": '',
-            "retry": True
-        },
-        {
-            "request_id": "12wer345kw3",
-            "object_name": "Case",
-            "total_count": 20003440,
-            "scanned_count": 700,
-            "status": "Retrying",
-            "last_updated_time": "22-04-2024T01:12:00.0000",
-            "error": '',
-            "retry": True
-        }]
+        result=[{
+        "request_id":"12wer34kwq",
+        "object_name":"User",
+        "criteria":"case_date< 8/3/2015 AND geo=“EU”​",
+        "total_count":200000,
+        "scanned_count":20,
+        "status":"Success",
+        "last_updated_time":"22-04-2024T01:12:00.0000"
+    },{
+        "request_id":"12wer345kwq",
+        "object_name":"Case",
+        "criteria":"case_date< 8/3/2015 AND geo=“EU”​",
+        "total_count":200000,
+        "scanned_count":20,
+        "status":"Failed",
+        "last_updated_time":"22-04-2024T01:12:00.0000"
+    }]
         return result
 
     @staticmethod
@@ -147,7 +135,7 @@ class ProtectoAPI:
         result = {
             "total_records": 100,
             "is_retry_enabled": True,
-            "is_approve_enabled": False,
+            "is_approve_enabled": True,
             "is_masked_list": ["to_be_masked", "no_mask"]
         }
         return result

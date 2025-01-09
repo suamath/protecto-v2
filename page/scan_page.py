@@ -16,6 +16,7 @@ class ScanPage:
             st.session_state.submit_handled = False
     
         # Add custom CSS to reduce the top margin and spacing
+        # Add this to your existing CSS styles:
         st.markdown("""
             <style>
             [data-testid="stAppViewContainer"] {
@@ -29,7 +30,7 @@ class ScanPage:
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                margin-top: -3rem;  /* Negative margin to reduce top space */
+                margin-top: -3rem;
                 padding: 0;
             }
             .main-title {
@@ -38,8 +39,18 @@ class ScanPage:
                 font-size: 2rem;
                 font-weight: bold;
             }
-            .stSelectbox {
-                margin-top: -1rem;  /* Reduce space before selectbox */
+            
+            /* Add these new styles */
+            [data-testid="stSelectbox"] > label {
+                height: 0px;
+                padding-bottom: 0.5rem;
+            }
+            [data-testid="stTextInput"] > label {
+                height: 0px;
+                padding-bottom: 0.5rem;
+            }
+            div[data-testid="stSelectbox"], div[data-testid="stTextInput"] {
+                padding-bottom: 0.5rem;
             }
             </style>
         """, unsafe_allow_html=True)
@@ -47,7 +58,7 @@ class ScanPage:
         # Header section with minimal spacing
         col1, col2 = st.columns([5, 1])
         with col1:
-            st.markdown('<h1 class="main-title">Start scan</h1>', unsafe_allow_html=True)
+           st.title("Start scan")
         with col2:
             if st.button("🔄 Refresh", key="refresh_button"):
                 st.session_state.submit_clicked = False
@@ -55,21 +66,29 @@ class ScanPage:
                 st.rerun()
     
         # Minimal spacing before Select Object
-        st.markdown('<h3 style="margin-top: 0.5rem; margin-bottom: 0.5rem;">Select Object</h3>', unsafe_allow_html=True)
         
         if "selected_object" not in st.session_state:
             st.session_state.selected_object = "User"  
         
         # Selectbox with reduced spacing
-        selected_object = st.selectbox(
-            "", 
-            self.objects, 
-            key="object_select",
-            index=self.objects.index(st.session_state.selected_object),
-            on_change=lambda: st.session_state.update({"submit_clicked": False, "submit_handled": False}),
-            label_visibility="collapsed"  # Hide label to reduce space
-        )
-        st.session_state.selected_object = selected_object
+        col1, col2 = st.columns([2, 2])
+        with col1:
+            selected_object = st.selectbox(
+                "Object", 
+                [""] + self.objects,
+                key="mask_config_object",
+                index=1 + self.objects.index(st.session_state.selected_object),
+                on_change=lambda: st.session_state.update({"submit_clicked": False, "submit_handled": False})
+            )
+            st.session_state.selected_object = selected_object
+        
+        with col2:
+            st.session_state.query = st.text_input(
+                "Enter WHERE clause",
+                placeholder="e.g., case_date < '8/3/2015' AND geo='EU'",
+                help="Enter the conditions to select records for masking",
+                key="query_input"
+            )
         
         if selected_object == "Select the Object Name":
             return
@@ -151,7 +170,7 @@ class ScanPage:
         """, unsafe_allow_html=True)
         
         column_config = {
-            "is_selected": st.column_config.CheckboxColumn("Select", width="medium"),
+            "is_selected": st.column_config.CheckboxColumn("Select", width="small"),
             "field": st.column_config.TextColumn("Field", width="medium"),
             "type": st.column_config.TextColumn("Type", width="medium"),
         }

@@ -44,34 +44,21 @@ class ScanProgressView:
              self._create_progress_table(df)
          except Exception as e:
              st.error(f"Error displaying progress: {str(e)}")
+
     def _add_custom_styles(self):
         st.markdown("""
             <style>
-            .stDataFrame { border: 1px solid #f0f2f6; border-radius: 4px; padding: 0 0;   text-align: left !important; }
+            .stDataFrame { border: 1px solid #f0f2f6; border-radius: 4px; padding: 0 0; text-align: left !important; }
             .pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; margin-top: 0.5rem; border-top: 1px solid #f0f2f6; }
             .page-info { color: #666; font-size: 0.9em; }
-            .retry-section { margin: 1rem 0; padding: 0.5rem; border-top: 1px solid #f0f2f6; }
             [data-testid="stDataFrameCell"] div:contains("Success") { color: #28a745; font-weight: 500; }
             [data-testid="stDataFrameCell"] div:contains("Failed") { color: #dc3545; font-weight: 500; }
-            [data-testid="stDataFrameCell"] div:contains("Retrying") { color: #ffc107; font-weight: 500; }
-            [data-testid="stDataFrameCell"] div:contains("❌") { color: #dc3545; font-weight: 500; }
             </style>
         """, unsafe_allow_html=True)
 
-    def _show_refresh_button(self):
-        col1, col2 = st.columns([5, 1])
-        with col2:
-            if st.button("🔄 Refresh", key="refresh_button", use_container_width=True):
-                progress_data = self.protecto_api.get_scan_progress()
-                st.session_state['scan_data'] = progress_data
-                st.rerun()
-
     def _handle_data_fetch(self):
-        if 'is_retry' not in st.session_state or not st.session_state['is_retry']:
-            progress_data = self.protecto_api.get_scan_progress()
-            st.session_state['scan_data'] = progress_data
-        else:
-            st.session_state['is_retry'] = False
+        progress_data = self.protecto_api.get_scan_progress()
+        st.session_state['scan_data'] = progress_data
 
     def _create_progress_table(self, df: pd.DataFrame) -> pd.DataFrame:
         if 'progress_table_page' not in st.session_state:
@@ -85,36 +72,20 @@ class ScanProgressView:
         end_idx = min(start_idx + batch_size, len(df))
         df_page = df.iloc[start_idx:end_idx].copy()
         
-        df_page.loc[df_page['status'] == 'Failed', 'error'] = '❌ Timeout Error'
-        
         column_config = self._get_column_config()
-        
-        failed_rows = df_page[df_page['status'] == 'Failed']
-        retry_button = None
-        
-        if not failed_rows.empty:
-          
-            cols = st.columns([4, 4, 2])
-            with cols[2]:
-                retry_button = st.button("Retry Scan", type="primary", use_container_width=True)
-
         
         editor = st.data_editor(
             df_page.style.set_properties(**{'text-align': 'left'}),
             column_config=column_config,
-            disabled=["object_name", "total_count", "scanned_count", "status", "last_updated_time", "error"],
+            disabled=["object_name", "criteria", "total_count", "scanned_count", "status", "last_updated_time"],
             hide_index=True,
             use_container_width=True,
             height=400,
-            column_order=["retry", "object_name", "total_count", "scanned_count", "status", "last_updated_time", "error"]
+            column_order=["object_name", "criteria", "total_count", "scanned_count", "status", "last_updated_time"]
         )
         
         df.iloc[start_idx:end_idx] = editor
         
-        if retry_button is not None and retry_button:
-            self._handle_retry_click(editor)
-
-       
         self._show_pagination(start_idx, end_idx, len(df), total_pages)
         
         return df
@@ -122,12 +93,11 @@ class ScanProgressView:
     def _get_column_config(self):
         return {
             "object_name": st.column_config.TextColumn("Object", width="medium"),
-            "total_count": st.column_config.NumberColumn("Total Records", width="medium"),
-            "scanned_count": st.column_config.NumberColumn("Scanned Records", width="medium"),
+            "criteria": st.column_config.TextColumn("Criteria", width="large"),
+            "total_count": st.column_config.NumberColumn("Total Records", width="small"),
+            "scanned_count": st.column_config.NumberColumn("Scanned Records", width="small"),
             "status": st.column_config.TextColumn("Status", width="small"),
-            "last_updated_time": st.column_config.TextColumn("Last Updated", width="large"),
-            "error": st.column_config.TextColumn("Error", width="large", help="Error details if scan failed"),
-            "retry": st.column_config.CheckboxColumn("Select", width="medium")
+            "last_updated_time": st.column_config.TextColumn("Last Updated", width="medium")
         }
 
     def _show_pagination(self, start_idx, end_idx, total_entries, total_pages):
@@ -155,38 +125,3 @@ class ScanProgressView:
         if cols[2].button("➡️", disabled=st.session_state.progress_table_page == total_pages, key="progress_next"):
             st.session_state.progress_table_page += 1
             st.rerun()
-
-    def _handle_retry_click(self, editor):
-        selected_rows = editor[editor['retry'] == True]
-        if not selected_rows.empty:
-            retry_request = selected_rows['request_id'].tolist()
-            self._handle_retry(retry_request)
-        else:
-            st.warning("Please select at least one failed scan to retry")
-
-    def _handle_retry(self, request_id: str):
-        try:
-            st.toast("Retry request is submitted", icon="✅")
-            current_data = st.session_state.get('scan_data', [])
-            retry_record = next((record for record in current_data if record['request_id'] == request_id), None)
-            
-            if retry_record:
-                selected_object = retry_record['object_name']
-                save_result = self.protecto_api.insert_or_update_scan_metadata(selected_object, [])
-                
-                if save_result.get('is_scan_submitted'):
-                    st.success("Fields saved successfully!", icon="✅")
-                    scan_result = self.protecto_api.submit_to_scan([])
-                    
-                    if scan_result.get('is_scan_submitted'):
-                        st.success("Scan initiated successfully!", icon="✅")
-                        retry_record['status'] = 'Retrying'
-                        retry_record['error'] = ''
-                        
-                        updated_data = self.protecto_api.retry_failed_object(request_id)
-                        st.session_state['scan_data'] = updated_data
-                        st.session_state['is_retry'] = True
-                        st.rerun()
-
-        except Exception as e:
-            st.error(f"Error retrying scan: {str(e)}")

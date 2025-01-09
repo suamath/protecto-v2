@@ -7,6 +7,8 @@ class MaskingApprovalPage:
         self.protecto_api = ProtectoAPI()
         if 'selected_object' not in st.session_state:
             st.session_state.selected_object = None
+        if 'is_approved' not in st.session_state:
+            st.session_state.is_approved = False
             
     def handle_save(self, object_name, edited_df):
         # Identify records marked for no_mask
@@ -42,7 +44,9 @@ class MaskingApprovalPage:
     def handle_approve(self, object_name):
         result = self.protecto_api.approve_for_masking(object_name)
         if not result['is_approve_enabled']:
+            st.session_state.is_approved = True  # Set approved state to True
             st.success(result['message'])
+            st.rerun()  # Rerun to reflect state changes immediately
         return result
 
     def create_dynamic_table(self, selected_object):
@@ -83,7 +87,8 @@ class MaskingApprovalPage:
                 'Select',
                 width='small',
                 default=False,
-                help="Select to retry this record"
+                help="Select to retry this record",
+                disabled=st.session_state.is_approved  # Disable checkboxes if approved
             ),
             'Id': st.column_config.TextColumn(
                 'Record id',
@@ -118,8 +123,6 @@ class MaskingApprovalPage:
             use_container_width=True,
             hide_index=True,
             num_rows="fixed",
-           
-           
         )
         
         return edited_df
@@ -139,7 +142,8 @@ class MaskingApprovalPage:
             selected_object = st.selectbox(
                 "Object",
                 options=object_names,
-                key="object_selectbox"
+                key="object_selectbox",
+                disabled=st.session_state.is_approved  # Disable selectbox if approved
             )
         
         with col2:
@@ -178,7 +182,7 @@ class MaskingApprovalPage:
                         "Retry",
                         type="secondary",
                         use_container_width=True,
-                        disabled=not is_approve_retry['is_retry_enabled']
+                        disabled=not is_approve_retry['is_retry_enabled'] or st.session_state.is_approved  # Disable retry if approved
                     )
                 
                 if approve_button:
@@ -187,16 +191,6 @@ class MaskingApprovalPage:
                     
                 if retry_button:
                     self.handle_retry(selected_object, edited_df)
-
-                # with col3:
-                #     retry_all_button = st.button(
-                #         "Retry all",
-                #         type="secondary",
-                #         use_container_width=True,
-                #         disabled=not is_approve_retry['is_retry_enabled']
-                #     )
-                #     if retry_all_button:
-                #         self.handle_retry_all(selected_object, edited_df)
 
 if __name__ == "__main__":
     masking_page = MaskingApprovalPage()
