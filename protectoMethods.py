@@ -224,3 +224,54 @@ class ProtectoAPI:
             "total_masked_value": 10
         }]
         return result
+
+    @staticmethod
+    def download_records(object_name):
+          """
+          object_name: "User"
+          """
+          result=[{
+          "attributes": {
+            "type": "User",
+            "url": "/services/data/v42.0/sobjects/User/0053h000000QZL3AAO"
+          },
+          "Id": "0053h000000QZL3AAO",
+          "Username": "gowtham.kamanaveera.ext@singlecrm.nokia.com.qa1",
+          "LastName": "Kamanaveera",
+          "FirstName": "Gowtham",
+          "MiddleName": None,
+          "Suffix": None,
+          "Name": "Gowtham Kamanaveera",
+          "CompanyName": "Nokia",
+          "Division": "NSW Applications Services & Care",
+          "Department": "NSW AS&C DE CC Central Del IOT",
+          "Title": "EXT-Consultant",
+          "Street": "Manyata Embassy Business Park",
+          "City": "Bangalore",
+          "State": None,
+          "PostalCode": "560045",
+          "Country": "India",
+          "StateCode": None,
+          "CountryCode": "IN",
+          "Latitude": None,
+          "Longitude": None,
+          "GeocodeAccuracy": None,
+          "Address": {
+            "city": "Bangalore",
+            "country": "India",
+            "countryCode": "IN",
+            "geocodeAccuracy": None,
+            "latitude": None,
+            "longitude": None,
+            "postalCode": "560045",
+            "state": None,
+            "stateCode": None,
+            "street": "Manyata Embassy Business Park"
+          },
+          "Email": "gowtham.kamanaveera.ext@nokia.com.invalid",
+          "protecto_status":"scanned",
+          "error":"",
+          "retry":True
+        }
+          ]
+          return result
