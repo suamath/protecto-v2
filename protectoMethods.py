@@ -33,35 +33,23 @@ class ProtectoAPI:
 
     @staticmethod
     def get_scan_progress():
-        result = [{
-            "request_id": "12wer34kwq",
-            "object_name": "User",
-            "total_count": 200000,
-            "scanned_count": 20,
-            "status": "Success",
-            "last_updated_time": "22-04-2024T01:12:00.0000",
-            "error": '',
-            "retry": False
-        }, {
-            "request_id": "12wer345kwq",
-            "object_name": "Case",
-            "total_count": 200000,
-            "scanned_count": 20,
-            "status": "Failed",
-            "last_updated_time": "22-04-2024T01:12:00.0000",
-            "error": '',
-            "retry": True
-        },
-        {
-            "request_id": "12wer345kw3",
-            "object_name": "Case",
-            "total_count": 20003440,
-            "scanned_count": 700,
-            "status": "Retrying",
-            "last_updated_time": "22-04-2024T01:12:00.0000",
-            "error": '',
-            "retry": True
-        }]
+        result=[{
+        "request_id":"12wer34kwq",
+        "object_name":"User",
+        "criteria":"case_date< 8/3/2015 AND geo=“EU”​",
+        "total_count":200000,
+        "scanned_count":20,
+        "status":"Success",
+        "last_updated_time":"22-04-2024T01:12:00.0000"
+    },{
+        "request_id":"12wer345kwq",
+        "object_name":"Case",
+        "criteria":"case_date< 8/3/2015 AND geo=“EU”​",
+        "total_count":200000,
+        "scanned_count":20,
+        "status":"Failed",
+        "last_updated_time":"22-04-2024T01:12:00.0000"
+    }]
         return result
 
     @staticmethod
@@ -149,7 +137,7 @@ class ProtectoAPI:
         result = {
             "total_records": 100,
             "is_retry_enabled": True,
-            "is_approve_enabled": False,
+            "is_approve_enabled": True,
             "is_masked_list": ["to_be_masked", "no_mask"]
         }
         return result
@@ -238,3 +226,54 @@ class ProtectoAPI:
             "total_masked_value": 10
         }]
         return result
+
+    @staticmethod
+    def download_records(object_name):
+          """
+          object_name: "User"
+          """
+          result=[{
+          "attributes": {
+            "type": "User",
+            "url": "/services/data/v42.0/sobjects/User/0053h000000QZL3AAO"
+          },
+          "Id": "0053h000000QZL3AAO",
+          "Username": "gowtham.kamanaveera.ext@singlecrm.nokia.com.qa1",
+          "LastName": "Kamanaveera",
+          "FirstName": "Gowtham",
+          "MiddleName": None,
+          "Suffix": None,
+          "Name": "Gowtham Kamanaveera",
+          "CompanyName": "Nokia",
+          "Division": "NSW Applications Services & Care",
+          "Department": "NSW AS&C DE CC Central Del IOT",
+          "Title": "EXT-Consultant",
+          "Street": "Manyata Embassy Business Park",
+          "City": "Bangalore",
+          "State": None,
+          "PostalCode": "560045",
+          "Country": "India",
+          "StateCode": None,
+          "CountryCode": "IN",
+          "Latitude": None,
+          "Longitude": None,
+          "GeocodeAccuracy": None,
+          "Address": {
+            "city": "Bangalore",
+            "country": "India",
+            "countryCode": "IN",
+            "geocodeAccuracy": None,
+            "latitude": None,
+            "longitude": None,
+            "postalCode": "560045",
+            "state": None,
+            "stateCode": None,
+            "street": "Manyata Embassy Business Park"
+          },
+          "Email": "gowtham.kamanaveera.ext@nokia.com.invalid",
+          "protecto_status":"scanned",
+          "error":"",
+          "retry":True
+        }
+          ]
+          return result

@@ -78,14 +78,14 @@ class MaskConfigPage:
                 index=1 + self.objects.index(st.session_state.selected_object)
             )
         
-        with col2:
-            # st.subheader("Enter Query")
-            query = st.text_input(
-                "Enter WHERE clause",
-                placeholder="e.g., case_date < '8/3/2015' AND geo='EU'",
-                help="Enter the conditions to select records for masking",
-                key="query_input"
-            )
+        # with col2:
+        #     # st.subheader("Enter Query")
+        #     query = st.text_input(
+        #         "Enter WHERE clause",
+        #         placeholder="e.g., case_date < '8/3/2015' AND geo='EU'",
+        #         help="Enter the conditions to select records for masking",
+        #         key="query_input"
+        #     )
             
         try:
             # Get and display field metadata
@@ -114,7 +114,7 @@ class MaskConfigPage:
                     # Update mask metadata
                     result = self.protecto_api.update_mask_metadata(
                         selected_object,
-                        query,
+                        st.session_state.query,
                         fields_records
                     )
                     

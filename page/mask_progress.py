@@ -19,11 +19,15 @@ class MaskProgressPage:
             'criteria': 'Criteria',
             'status': 'Status',
             'total_no_of_rows_approved_for_masking': 'Total no.of rows to be masked',
-            'total_masked_value': 'masked'
+            'total_masked_value': 'masked',
+            'last_updated_time': 'Last Approved Time'  # Changed to match the actual data field
         })
         
         # Select and reorder columns
-        df = df[['Object', 'Criteria', 'Status', 'Total no.of rows to be masked', 'masked']]
+        df = df[['Object', 'Criteria', 'Status', 'Total no.of rows to be masked', 'masked', 'Last Approved Time']]
+        
+        # Convert last_updated_time to datetime
+        df['Last Approved Time'] = pd.to_datetime(df['Last Approved Time'])
         
         # Custom styling for the Status column
         def style_status(status):
@@ -41,7 +45,7 @@ class MaskProgressPage:
         column_config = {
             "Object": st.column_config.TextColumn(
                 "Object",
-                width="medium"
+                width="small"
             ),
             "Criteria": st.column_config.TextColumn(
                 "Criteria",
@@ -49,17 +53,22 @@ class MaskProgressPage:
             ),
             "Status": st.column_config.TextColumn(
                 "Status",
-                width="medium"
+                width="small"
             ),
             "Total no.of rows to be masked": st.column_config.NumberColumn(
                 "Total no.of rows to be masked",
-                width="medium",
+                width="small",
                 format="%d"
             ),
             "masked": st.column_config.NumberColumn(
                 "masked",
                 width="small",
                 format="%d"
+            ),
+            "Last Approved Time": st.column_config.DatetimeColumn(
+                "Last Approved Time",
+                width="medium",
+                format="DD-MM-YYYY HH:mm"  # Updated format to match the data
             )
         }
         
@@ -78,9 +87,6 @@ class MaskProgressPage:
             use_container_width=True,
             hide_index=True
         )
-        
-       
-      
 
 if __name__ == "__main__":
     mask_page = MaskProgressPage()

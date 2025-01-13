@@ -7,6 +7,8 @@ class MaskingApprovalPage:
         self.protecto_api = ProtectoAPI()
         if 'selected_object' not in st.session_state:
             st.session_state.selected_object = None
+        if 'is_approved' not in st.session_state:
+            st.session_state.is_approved = False
             
     def handle_save(self, object_name, edited_df):
         # Identify records marked for no_mask
@@ -42,8 +44,45 @@ class MaskingApprovalPage:
     def handle_approve(self, object_name):
         result = self.protecto_api.approve_for_masking(object_name)
         if not result['is_approve_enabled']:
+            st.session_state.is_approved = True
             st.success(result['message'])
+            st.rerun()
         return result
+
+    def handle_download(self, object_name):
+        # Get records from API
+        records = self.protecto_api.download_records(object_name)
+        
+        if records:
+            # Flatten the records
+            flattened_records = []
+            for record in records:
+                flat_record = {}
+                # Add regular fields
+                for key, value in record.items():
+                    if key != 'attributes' and not isinstance(value, dict):
+                        flat_record[key] = value
+                    elif key == 'Address' and isinstance(value, dict):
+                        # Flatten address fields with prefix
+                        for addr_key, addr_value in value.items():
+                            flat_record[f'Address_{addr_key}'] = addr_value
+                flattened_records.append(flat_record)
+            
+            # Convert to DataFrame
+            df = pd.DataFrame(flattened_records)
+            
+            # Convert DataFrame to CSV
+            csv = df.to_csv(index=False)
+            
+            # Create download button
+            st.download_button(
+                label="Download CSV",
+                data=csv,
+                file_name=f"{object_name}_records.csv",
+                mime="text/csv"
+            )
+        else:
+            st.warning("No records available for download")
 
     def create_dynamic_table(self, selected_object):
         # Get data for the selected object
@@ -72,8 +111,8 @@ class MaskingApprovalPage:
         if 'retry' not in df.columns:
             df['retry'] = False
             
-        # Reorder columns to ensure specific columns come first
-        first_columns = ['retry','Id','Username','is_masked',  'error']
+        # Reorder columns
+        first_columns = ['retry', 'Id', 'Username', 'is_masked', 'error']
         other_columns = [col for col in df.columns if col not in first_columns]
         df = df[first_columns + other_columns]
 
@@ -83,7 +122,8 @@ class MaskingApprovalPage:
                 'Select',
                 width='small',
                 default=False,
-                help="Select to retry this record"
+                help="Select to retry this record",
+                disabled=st.session_state.is_approved
             ),
             'Id': st.column_config.TextColumn(
                 'Record id',
@@ -104,22 +144,20 @@ class MaskingApprovalPage:
         
         # Add other columns dynamically
         for col in df.columns:
-            if col not in ['retry', 'Username','Id', 'is_masked', 'error']:
+            if col not in ['retry', 'Username', 'Id', 'is_masked', 'error']:
                 column_config[col] = st.column_config.TextColumn(
                     col,
                     width='medium',
                     disabled=True
                 )
 
-        # Create and display the dataframe with selection enabled
+        # Create and display the dataframe
         edited_df = st.data_editor(
             df,
             column_config=column_config,
             use_container_width=True,
             hide_index=True,
             num_rows="fixed",
-           
-           
         )
         
         return edited_df
@@ -130,16 +168,16 @@ class MaskingApprovalPage:
         # Get the objects and queries scheduled for masking
         scheduled_objects = self.protecto_api.get_objects_and_query_scheduled_for_masking()
         
-        # Create two columns for the listbox and query display
+        # Create columns for layout
         col1, col2 = st.columns([1, 2])
         
         with col1:
-            # Extract just the object names for the selectbox
             object_names = [obj["object_name"] for obj in scheduled_objects]
             selected_object = st.selectbox(
                 "Object",
                 options=object_names,
-                key="object_selectbox"
+                key="object_selectbox",
+                disabled=st.session_state.is_approved
             )
         
         with col2:
@@ -156,7 +194,7 @@ class MaskingApprovalPage:
             st.divider()
             
             # Add action buttons in a row
-            col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+            col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 1])
             
             # Get button states
             is_approve_retry = self.protecto_api.is_approve_and_retry_enabled(selected_object)
@@ -178,8 +216,10 @@ class MaskingApprovalPage:
                         "Retry",
                         type="secondary",
                         use_container_width=True,
-                        disabled=not is_approve_retry['is_retry_enabled']
+                        disabled=not is_approve_retry['is_retry_enabled'] or st.session_state.is_approved
                     )
+                with col5:
+                    self.handle_download(selected_object)
                 
                 if approve_button:
                     self.handle_save(selected_object, edited_df)
@@ -187,16 +227,6 @@ class MaskingApprovalPage:
                     
                 if retry_button:
                     self.handle_retry(selected_object, edited_df)
-
-                # with col3:
-                #     retry_all_button = st.button(
-                #         "Retry all",
-                #         type="secondary",
-                #         use_container_width=True,
-                #         disabled=not is_approve_retry['is_retry_enabled']
-                #     )
-                #     if retry_all_button:
-                #         self.handle_retry_all(selected_object, edited_df)
 
 if __name__ == "__main__":
     masking_page = MaskingApprovalPage()

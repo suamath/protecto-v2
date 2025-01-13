@@ -6,4 +6,5 @@ pymysql
 SQLAlchemy
 #mysqlclient
 mysql-connector-python
+flask_sqlalchemy
 # Add any other dependencies your project needs
