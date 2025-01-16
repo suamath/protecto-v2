@@ -157,16 +157,29 @@ class UserManager:
             
             with engine.connect() as conn:
                 print("\n--- Fetching Table Fields ---")
-                fields_result = conn.execute(text("DESCRIBE users")).fetchall()
+                fields_result = conn.execute(text("DESCRIBE environment_details")).fetchall()
                 fields = [row[0] for row in fields_result if row[0] != 'id']
                 print(f"Table fields: {fields}")
+
+                print("\n--- Fetching All User Data ---")
+                query = "SELECT * FROM environment_details"
+                result = conn.execute(text(query)).fetchall()
+
+                if result:
+                    print("\n--- Users Found ---")
+                    for row in result:
+                        user_data = {field: getattr(row, field) for field in fields}
+                        print(user_data)
+                else:
+                    print("\n✗ No users found")
+
                 
                 print("\n--- Building WHERE clause ---")
                 where_clauses = [f"{key} = :{key}" for key in kwargs.keys()]
                 where_statement = " AND ".join(where_clauses)
                 print(f"WHERE clause: {where_statement}")
                 
-                query = f"SELECT * FROM users WHERE {where_statement}"
+                query = f"SELECT * FROM environment_details WHERE {where_statement}"
                 print(f"\n--- Executing Query ---\n{query}")
                 print(f"With parameters: {kwargs}")
                 
