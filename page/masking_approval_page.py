@@ -12,7 +12,9 @@ class MaskingApprovalPage:
             
     def handle_save(self, object_name, edited_df):
         # Identify records marked for no_mask
-        no_mask_records = edited_df[edited_df['is_masked'] == 'no_mask']['Id'].tolist()
+       # print(edited_df)
+        no_mask_records = edited_df[edited_df['retry'] == True]['Id'].tolist()
+        print(no_mask_records)
         if no_mask_records:
             result = self.protecto_api.update_no_mask_for_record(object_name, no_mask_records)
             st.success(result['message'])
@@ -43,10 +45,12 @@ class MaskingApprovalPage:
 
     def handle_approve(self, object_name):
         result = self.protecto_api.approve_for_masking(object_name)
+        st.success(result['message'])
+        print(result)
         if not result['is_approve_enabled']:
             st.session_state.is_approved = True
-            st.success(result['message'])
-            st.rerun()
+            #st.success(result['message'])
+            #st.rerun()
         return result
 
     def handle_download(self, object_name):

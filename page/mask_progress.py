@@ -20,7 +20,7 @@ class MaskProgressPage:
             'status': 'Status',
             'total_no_of_rows_approved_for_masking': 'Total no.of rows to be masked',
             'total_masked_value': 'masked',
-            'last_updated_time': 'Last Approved Time'  # Changed to match the actual data field
+            'last_updated_time': 'Last Updated Time'  # Changed to match the actual data field
         })
         
         # Select and reorder columns

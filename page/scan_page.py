@@ -83,12 +83,13 @@ class ScanPage:
             st.session_state.selected_object = selected_object
         
         with col2:
-            st.session_state.query = st.text_input(
+            query = st.text_input(
                 "Enter WHERE clause",
                 placeholder="e.g., case_date < '8/3/2015' AND geo='EU'",
                 help="Enter the conditions to select records for masking",
                 key="query_input"
             )
+            st.session_state.query = query
         
         if selected_object == "Select the Object Name":
             return
@@ -104,13 +105,16 @@ class ScanPage:
                     use_container_width=True,
                     type="primary",
                     key="submit_btn",
-                    disabled=st.session_state.submit_clicked
+                    disabled=st.session_state.submit_clicked or not query.strip()  # Disable if empty
                 )
             
             # Table
             df, table = self._create_fields_table(fields)
             
             if submit_button:
+                if not query.strip():
+                    st.error("Please enter a WHERE clause before submitting")
+                    return
                 st.session_state.submit_clicked = True
                 st.rerun()
             
