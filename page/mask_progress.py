@@ -24,10 +24,10 @@ class MaskProgressPage:
         })
         
         # Select and reorder columns
-        df = df[['Object', 'Criteria', 'Status', 'Total no.of rows to be masked', 'masked', 'Last Approved Time']]
+        df = df[['Object', 'Criteria', 'Status', 'Total no.of rows to be masked', 'masked', 'Last Updated Time']]
         
         # Convert last_updated_time to datetime
-        df['Last Approved Time'] = pd.to_datetime(df['Last Approved Time'])
+        df['Last Updated Time'] = pd.to_datetime(df['Last Updated Time'])
         
         # Custom styling for the Status column
         def style_status(status):
@@ -65,8 +65,8 @@ class MaskProgressPage:
                 width="small",
                 format="%d"
             ),
-            "Last Approved Time": st.column_config.DatetimeColumn(
-                "Last Approved Time",
+            "Last Updated Time": st.column_config.DatetimeColumn(
+                "Last Updated Time",
                 width="medium",
                 format="DD-MM-YYYY HH:mm"  # Updated format to match the data
             )

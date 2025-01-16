@@ -39,7 +39,7 @@ class MaskConfigPage:
              use_container_width=True,
              hide_index=True,
              num_rows="fixed",
-             column_order=[ "field", "pii_identified", "override_pii","to_be_masked", "samples"]
+             column_order=["to_be_masked", "field", "pii_identified", "override_pii", "samples"]
          )
          
          # Convert Yes/No back to boolean before returning
