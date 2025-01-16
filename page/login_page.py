@@ -63,18 +63,16 @@ class UserManager:
     def __init__(self):
         self.db_connection = TiDBConnection()
         
-    def register_user(self, client_id: str, username: str, private_key_hash: str, 
-                     environment_name: str, audience_url: str, environment_url: str) -> bool:
+    def register_user(self,client_id: str, username: str, private_key: str, password: str, environment_name: str, audience_url: str, environment_url: str) -> bool:
         """Register a new user in the database."""
         print("\n=== Starting Registration Process ===")
         print(f"Attempting to register:")
         print(f"Client ID: {client_id}")
         print(f"Username: {username}")
-        print(f"Private Key Hash: {private_key_hash}")
+        print(f"Private Key: {private_key}")
         print(f"Environment Name: {environment_name}")
         print(f"Audience URL: {audience_url}")
         print(f"Environment URL: {environment_url}")
-        
         try:
             print("\n--- Connecting to Database ---")
             engine = self.db_connection.connect()
@@ -85,38 +83,52 @@ class UserManager:
                 conn.execute(text("USE test;"))
                 print("✓ Switched to test database")
                 
-                print("\n--- Checking if users table exists ---")
-                result = conn.execute(text("SHOW TABLES LIKE 'users'")).fetchone()
+                # print("\n--- Dropping environment_details table if it exists ---")
+                # conn.execute(text("DROP TABLE IF EXISTS environment_details"))
+                # print("✓ environment_details table dropped successfully")
+                
+                
+                print("\n--- Checking if environment_details table exists ---")
+                result = conn.execute(text("SHOW TABLES LIKE 'environment_details'")).fetchone()
                 if not result:
-                    print("Users table does not exist. Creating table...")
+                    print("environment_details table does not exist. Creating table...")
+                    # Create the environment_details table if it doesn't exist
                     conn.execute(text("""
-                        CREATE TABLE users (
+                        CREATE TABLE environment_details (
                             id INT AUTO_INCREMENT PRIMARY KEY,
                             client_id VARCHAR(255),
                             username VARCHAR(255) NOT NULL,
-                            private_key_hash TEXT NOT NULL,  
+                            private_key_hash TEXT NOT NULL,
+                            password VARCHAR(255) NOT NULL,
                             environment_name VARCHAR(255),
                             audience_url VARCHAR(255),
                             environment_url VARCHAR(255)
                         )
                     """))
                     conn.commit()
-                    print("✓ Users table created successfully")
+                    print("✓ environment_details table created successfully")
                 else:
-                    print("✓ Users table already exists")
+                    print("✓ environment_details table already exists")
+                
+                print("✓ User does not exist, proceeding with registration")
                 
                 print("\n--- Creating New User ---")
+                print("Hashing private key...")
+                #private_key_hash = hash_private_key(private_key)
+                private_key_hash = private_key
+                print("✓ Private key hashed")
                 
                 print("Inserting user into database...")
                 conn.execute(
                     text("""
-                        INSERT INTO users (client_id, username, private_key_hash, environment_name, audience_url, environment_url)
-                        VALUES (:client_id, :username, :private_key_hash, :environment_name, :audience_url, :environment_url)
+                        INSERT INTO environment_details (client_id, username, private_key_hash, password, environment_name, audience_url, environment_url)
+                        VALUES (:client_id, :username, :private_key_hash, :password, :environment_name, :audience_url, :environment_url)
                     """),
                     {
                         "client_id": client_id,
                         "username": username,
                         "private_key_hash": private_key_hash,
+                        "password": password,
                         "environment_name": environment_name,
                         "audience_url": audience_url,
                         "environment_url": environment_url
@@ -208,7 +220,7 @@ class LoginPage:
             
         try:
             with engine.connect() as conn:
-                result = conn.execute(text("DESCRIBE users")).fetchall()
+                result = conn.execute(text("DESCRIBE environment_details")).fetchall()
                 fields = [row[0] for row in result if row[0] != 'id']
                 return fields
         except SQLAlchemyError as e:
@@ -224,7 +236,7 @@ class LoginPage:
             
         try:
             with engine.connect() as conn:
-                result = conn.execute(text("SELECT DISTINCT environment_name FROM users")).fetchall()
+                result = conn.execute(text("SELECT DISTINCT environment_name FROM environment_details")).fetchall()
                 return [row[0] for row in result if row[0]]  # Filter out None values
         except SQLAlchemyError as e:
             st.error(f"Error fetching environment names: {e}")
@@ -242,6 +254,7 @@ class LoginPage:
         
         # Get table fields dynamically
         table_fields = self.get_table_fields()
+        
         
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
@@ -294,31 +307,24 @@ class LoginPage:
                             st.error("Invalid credentials. Please try again.")
                             
             with tab2:
-                with st.form(key='register_form', clear_on_submit=True):
-                    reg_credentials = {}
+                with st.form(key='register_form'):
+                    reg_client_id = st.text_input("Client ID")
+                    reg_username = st.text_input("Username")
+                    private_key = st.text_input("Private Key", type="password")
+                    password = st.text_input("Password", type="password")
+                    environment = st.text_input('Enter Environment Name:')
+                    environment_url = st.text_input('Environment URL:')
+                    audience_url = st.text_input('Audience URL:')
+                    submit_button = st.form_submit_button("Register")
                     
-                    for field in table_fields:
-                        field_value = st.text_input(
-                            field.replace('_', ' ').title(),
-                            type='password' if field == 'private_key_hash' else 'default',
-                            key=f"register_{field}"
-                        )
-                        reg_credentials[field] = field_value
-                    
-                    register_button = st.form_submit_button("Register")
-                    
-                    if register_button:
-                        if not all(reg_credentials.values()):
-                            st.error("Please fill in all fields")
-                            return
-                            
-                        if self.user_manager.register_user(**reg_credentials):
+                    if submit_button and reg_client_id and reg_username and private_key and password:
+                        if  self.user_manager.register_user(reg_client_id, reg_username, private_key, password, environment, audience_url, environment_url):
                             st.success("Registration successful! Please login.")
-                            time.sleep(1)  # Give time for success message
                             st.session_state.page = 'login'
                             st.rerun()
                         else:
                             st.error("Registration failed. Please try again.")
+                            st.rerun()
 
 # Usage
 if __name__ == "__main__":
