@@ -33,6 +33,7 @@ import streamlit as st
 from typing import Optional
 
 class ImprovedSidebar:
+    
     def __init__(self):
         self.css = """
             <style>
