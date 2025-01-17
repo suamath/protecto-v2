@@ -8,4 +8,5 @@ SQLAlchemy
 mysql-connector-python
 flask_sqlalchemy
 python-dotenv
+MySQL-python
 # Add any other dependencies your project needs
