@@ -233,6 +233,13 @@ class LoginPage:
             
         try:
             with engine.connect() as conn:
+
+                print("\n--- Fetching All User Data ---")
+                query = "SELECT * FROM environment_details"
+                result = conn.execute(text(query)).fetchall()
+                print("\nEnvironment Details:")
+                for row in result:
+                    print(row)
                 result = conn.execute(text("DESCRIBE environment_details")).fetchall()
                 fields = [row[0] for row in result if row[0] != 'id']
                 return fields

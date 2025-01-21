@@ -137,7 +137,7 @@ class MaskingApprovalPage:
             'is_masked': st.column_config.SelectboxColumn(
                 'New column(Is Masked)',
                 width='medium',
-                options=['to_be_masked', 'no_mask']
+                options=["approved", "scanned","reject"," mask failed"]
             ),
             'error': st.column_config.TextColumn(
                 'Error',
