@@ -3,6 +3,7 @@ from typing import Optional
 from page.scan_page import ScanPage
 from page.scan_progress_view import ScanProgressView
 from page.Mask import MaskPage
+
 from protectoMethods import ProtectoAPI
 from page.masking_configuration_page import MaskConfigPage
 from page.login_page import LoginPage
