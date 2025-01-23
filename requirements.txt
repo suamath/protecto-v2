@@ -15,7 +15,7 @@ jsonschema-specifications
 markdown-it-py
 MarkupSafe
 mdurl
-mysqlclient
+mysql-connector-python
 numpy
 packaging
 pandas
