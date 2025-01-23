@@ -6,7 +6,7 @@ from page.Mask import MaskPage
 
 from protectoMethods import ProtectoAPI
 from page.masking_configuration_page import MaskConfigPage
-from page.login_page import LoginPage
+#from page.login_page import LoginPage
 from page.masking_approval_page import MaskingApprovalPage 
 from page.mask_progress import MaskProgressPage
 
@@ -248,8 +248,8 @@ class ProtectoApp:
     
             # Show login page if not authenticated
             if not st.session_state.authenticated:
-                login_page = LoginPage()
-                login_page.display()
+                #login_page = LoginPage()
+                #login_page.display()
                 return
             else:
                 # Always set home page as default after login
