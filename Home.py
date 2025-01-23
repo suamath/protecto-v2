@@ -15,23 +15,7 @@ VALID_PAGES = {"home", "scan_edit", "scan_progress", "mask", "mask_config", "mas
 import streamlit as st
 from typing import Optional
 
-import streamlit as st
-from typing import Optional
 
-import streamlit as st
-from typing import Optional
-
-import streamlit as st
-from typing import Optional
-
-import streamlit as st
-from typing import Optional
-
-import streamlit as st
-from typing import Optional
-
-import streamlit as st
-from typing import Optional
 
 class ImprovedSidebar:
     

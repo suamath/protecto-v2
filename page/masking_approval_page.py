@@ -9,6 +9,8 @@ class MaskingApprovalPage:
             st.session_state.selected_object = None
         if 'is_approved' not in st.session_state:
             st.session_state.is_approved = False
+        if 'data_type_selectbox' not in st.session_state:
+            st.session_state.data_type_selectbox = "Scanned"
             
     def handle_save(self, object_name, edited_df):
         no_mask_records = edited_df[edited_df['retry'] == True]['Id'].tolist()
@@ -88,8 +90,13 @@ class MaskingApprovalPage:
                     flat_record[key] = value
             
             flat_record['retry'] = bool(record.get('retry', False))
-            if st.session_state.get('data_type_selectbox') == "Scanned data":
-                flat_record['is_masked'] = "scanned"
+            # Set is_masked based on data type selection
+            if st.session_state.data_type_selectbox == "Mask failed":
+                flat_record['is_masked'] = "Mask failed"
+            elif st.session_state.data_type_selectbox == "Approved":
+                flat_record['is_masked'] = "Approved"
+            elif st.session_state.data_type_selectbox == "Scanned":
+                flat_record['is_masked'] = "Scanned"
             flattened_records.append(flat_record)
             
         df = pd.DataFrame(flattened_records)
@@ -121,17 +128,20 @@ class MaskingApprovalPage:
             )
         }
 
-        if st.session_state.get('data_type_selectbox') == "Scanned data":
-            column_config['is_masked'] = st.column_config.TextColumn(
-                'Is Masked',
-                width='medium',
-                disabled=True
-            )
-        else:
+        # Configure is_masked column based on data type
+        if st.session_state.data_type_selectbox == "Scanned":
             column_config['is_masked'] = st.column_config.SelectboxColumn(
                 'Is Masked',
                 width='medium',
-                options=["approved", "scanned", "reject", "mask failed"]
+                options=["Scanned", "Reject"],
+                default="Scanned"
+            )
+        else:
+            column_config['is_masked'] = st.column_config.TextColumn(
+                'Is Masked',
+                width='medium',
+                disabled=True,
+                default=st.session_state.data_type_selectbox
             )
         
         for col in df.columns:
@@ -184,40 +194,33 @@ class MaskingApprovalPage:
 
             is_approve_retry = self.protecto_api.is_approve_and_retry_enabled(selected_object)
             
-            edited_df = self.create_dynamic_table(selected_object)
-            st.markdown("""
-<style>
-div[data-baseweb="select"][aria-describedby*="data_type_selectbox"] {
-    margin-top: -100px;
-}
+            with col1:
+                data_type = st.selectbox(
+                    "Select Type",
+                    options=["Scanned", "Approved", "Mask failed"],
+                    key="data_type_selectbox",
+                    disabled=st.session_state.is_approved
+                )
 
-div[data-baseweb="select"]:not([aria-describedby*="data_type_selectbox"]) {
-    margin-top: initial;
-}
-</style>
-""", unsafe_allow_html=True)
+            edited_df = self.create_dynamic_table(selected_object)
             
             if edited_df is not None:
-                with col1:
-                    data_type = st.selectbox(
-                        "Select Type",
-                        options=["","Scanned data", "Other"],
-                        key="data_type_selectbox",
-                        disabled=st.session_state.is_approved
-                    )
                 with col3:
                     approve_button = st.button(
                         "Approve",
                         type="primary",
                         use_container_width=True,
-                        disabled=not is_approve_retry['is_approve_enabled']
+                        disabled=not (is_approve_retry['is_approve_enabled'] and 
+                                    st.session_state.data_type_selectbox == "Scanned")
                     )
                 with col4:
                     retry_button = st.button(
                         "Retry",
                         type="secondary",
                         use_container_width=True,
-                        disabled=not is_approve_retry['is_retry_enabled'] or st.session_state.is_approved
+                        disabled=not (is_approve_retry['is_retry_enabled'] and 
+                                    st.session_state.data_type_selectbox == "Mask failed") or 
+                                    st.session_state.is_approved
                     )
                 with col5:
                     self.handle_download(selected_object)
