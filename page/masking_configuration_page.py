@@ -6,14 +6,19 @@ class MaskConfigPage:
     def __init__(self):
         self.protecto_api = ProtectoAPI()
         self.objects = self.protecto_api.get_list_of_objects()
-        
-    def highlight_mask_status(self, row):
-        return ['background-color: #90EE90' if x == 'Yes' else 'background-color: #FFB6C6' for x in row]
+    
+    def highlight_mask_status(self, df):
+        colored = pd.DataFrame('', index=df.index, columns=df.columns)
+        colored['field'] = df['to_be_masked'].apply(lambda x: 'background-color: #90EE90' if x == 'Yes' else 'background-color: #FFB6C6')
+        return colored
         
     def _create_fields_table(self, fields_data):
-        df = pd.DataFrame(fields_data)
-        df['to_be_masked'] = df['to_be_masked'].map({True: 'Yes', False: 'No'})
-         
+        # Initialize the dataframe in session state if it doesn't exist
+        if 'current_df' not in st.session_state:
+            df = pd.DataFrame(fields_data)
+            df['to_be_masked'] = df['to_be_masked'].map({True: 'Yes', False: 'No'})
+            st.session_state.current_df = df
+        
         column_config = {
             "to_be_masked": st.column_config.SelectboxColumn(
                 "To be masked?",
@@ -31,26 +36,29 @@ class MaskConfigPage:
             ),
             "samples": st.column_config.ListColumn("Samples", width="large")
         }
+        
+        # Apply styling to the current dataframe
+        styled_df = st.session_state.current_df.style.apply(self.highlight_mask_status, axis=None)
          
         edited_df = st.data_editor(
-            df,
+            styled_df,
             column_config=column_config,
             use_container_width=True,
             hide_index=True,
             num_rows="fixed",
-            column_order=["field", "pii_identified", "override_pii", "to_be_masked", "samples"]
+            column_order=["field", "pii_identified", "override_pii", "to_be_masked", "samples"],
+            disabled=["field"],
+            key="data_editor"  # Add key to track changes
         )
          
+        if edited_df is not None and not edited_df.equals(st.session_state.current_df):
+            st.session_state.current_df = edited_df
+            st.rerun()  # Force re-render when data changes
+            
         if edited_df is not None:
-            display_df = pd.DataFrame({'Field': edited_df['field']})
-            styled = display_df.style.apply(lambda x: ['background-color: #90EE90' if edited_df['to_be_masked'].iloc[i] == 'Yes' 
-                                                     else 'background-color: #FFB6C6' for i in range(len(x))], axis=0)
-            
-            st.write("Fields coloring based on mask status:")
-            st.dataframe(styled, use_container_width=True, hide_index=True)
-            
-            edited_df['to_be_masked'] = edited_df['to_be_masked'].map({'Yes': True, 'No': False})
-            return edited_df
+            result_df = edited_df.copy()
+            result_df['to_be_masked'] = result_df['to_be_masked'].map({'Yes': True, 'No': False})
+            return result_df
         return None
 
     def show(self):
@@ -107,6 +115,8 @@ class MaskConfigPage:
                         st.session_state.show_table = False
                         if 'field_metadata' in st.session_state:
                             del st.session_state.field_metadata
+                        if 'current_df' in st.session_state:
+                            del st.session_state.current_df
                     else:
                         st.error("Failed to update mask configuration. Please try again.")
                 except Exception as e:
