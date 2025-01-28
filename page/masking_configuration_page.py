@@ -7,13 +7,30 @@ class MaskConfigPage:
         self.protecto_api = ProtectoAPI()
         self.objects = self.protecto_api.get_list_of_objects()
     
-    def highlight_mask_status(self, df):
-        colored = pd.DataFrame('', index=df.index, columns=df.columns)
-        colored['field'] = df['to_be_masked'].apply(lambda x: 'background-color: #90EE90' if x == 'Yes' else 'background-color: #FFB6C6')
-        return colored
+    def select_col(self, x):
+      cbg_yes = 'background-color: #90EE90; color: black'  # Light green for "Yes"
+      cbg_no = 'background-color: #FFB6C6; color: black'   # Light red for "No"
+      c2 = ''  # Empty style for other columns
+      
+      # Create empty style DataFrame
+      df1 = pd.DataFrame(c2, index=x.index, columns=x.columns)
+      
+      # Apply green background for Yes
+      mask_yes = x['to_be_masked'] == "Yes"
+      df1.loc[mask_yes, 'field'] = cbg_yes
+      
+      # Apply red background for No
+      mask_no = x['to_be_masked'] == "No"
+      df1.loc[mask_no, 'field'] = cbg_no
+      
+      return df1
+
+    def change(self):
+        for index, updates in st.session_state.data_editor['edited_rows'].items():
+            for column, new_value in updates.items():
+                st.session_state.current_df.at[index, column] = new_value
         
     def _create_fields_table(self, fields_data):
-        # Initialize the dataframe in session state if it doesn't exist
         if 'current_df' not in st.session_state:
             df = pd.DataFrame(fields_data)
             df['to_be_masked'] = df['to_be_masked'].map({True: 'Yes', False: 'No'})
@@ -37,8 +54,7 @@ class MaskConfigPage:
             "samples": st.column_config.ListColumn("Samples", width="large")
         }
         
-        # Apply styling to the current dataframe
-        styled_df = st.session_state.current_df.style.apply(self.highlight_mask_status, axis=None)
+        styled_df = st.session_state.current_df.style.apply(self.select_col, axis=None)
          
         edited_df = st.data_editor(
             styled_df,
@@ -48,13 +64,10 @@ class MaskConfigPage:
             num_rows="fixed",
             column_order=["field", "pii_identified", "override_pii", "to_be_masked", "samples"],
             disabled=["field"],
-            key="data_editor"  # Add key to track changes
+            on_change=self.change,
+            key="data_editor"
         )
          
-        if edited_df is not None and not edited_df.equals(st.session_state.current_df):
-            st.session_state.current_df = edited_df
-            st.rerun()  # Force re-render when data changes
-            
         if edited_df is not None:
             result_df = edited_df.copy()
             result_df['to_be_masked'] = result_df['to_be_masked'].map({'Yes': True, 'No': False})
